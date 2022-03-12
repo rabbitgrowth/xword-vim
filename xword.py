@@ -199,9 +199,9 @@ class Grid:
 
             lines.append(line)
 
-            line = ''
-            for x in range(self.width + 1):
-                if y < self.height:
+            if y < self.height:
+                line = ''
+                for x in range(self.width + 1):
                     vertex_boldness = boldness.get((x, y), Shape.NONE)
                     if vertex_boldness in (Shape.DOWN_AND_RIGHT, Shape.DOWN_AND_LEFT, Shape.VERTICAL):
                         vertical_edge_boldness = Shape.VERTICAL
@@ -210,11 +210,11 @@ class Grid:
                     vertical_edge = BOX_DRAWING_CHARS[Shape.VERTICAL][vertical_edge_boldness]
                     line += vertical_edge
 
-                if x < self.width and y < self.height:
-                    square = self.get(x, y)
-                    line += '░░░' if square is None else square.render()
+                    if x < self.width:
+                        square = self.get(x, y)
+                        line += '░░░' if square is None else square.render()
 
-            lines.append(line)
+                lines.append(line)
 
         return lines
 

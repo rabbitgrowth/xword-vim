@@ -54,17 +54,6 @@ class TestMiniPuzzle(unittest.TestCase):
             square = square.next[xword.Direction.DOWN]
         self.assertEqual(square.solution, 'E')
 
-    def test_displayed_clue_numbers(self):
-        self.assertEqual([[square.displayed_clue_number() for square in row]
-                          for row in self.grid.grid],
-                         [[None, 1,    2,    3,    4,    5,    None],
-                          [6,    None, None, None, None, None, 7   ],
-                          [8,    None, None, None, None, None, None],
-                          [9,    None, None, None, 10,   None, None],
-                          [11,   None, None, 12,   None, None, None],
-                          [13,   None, None, None, None, None, None],
-                          [None, 14,   None, None, None, None, None]])
-
     def test_up_down_left_right(self):
         cursor = xword.Cursor(self.grid.get(2, 3), xword.Direction.ACROSS, self.grid)
         self.assertEqual(cursor.h().square.coords, (1, 3))
@@ -90,6 +79,24 @@ class TestMiniPuzzle(unittest.TestCase):
         self.assertEqual(cursor.square.coords, (6, 1))
         cursor = cursor.ge().ge().ge().ge()
         self.assertEqual(cursor.square.coords, (0, 5))
+
+    def test_rendering(self):
+        cursor = xword.Cursor(self.grid.get(6, 3), xword.Direction.DOWN, self.grid)
+        self.assertEqual(self.grid.render(cursor), ['┌───┬1──┬2──┬3──┬4──┬5──┬───┐',
+                                                    '│░░░│   │   │   │   │   │░░░│',
+                                                    '├6──┼───┼───┼───┼───┼───╆7━━┪',
+                                                    '│   │   │   │   │   │   ┃   ┃',
+                                                    '├8──┼───┼───┼───┼───┼───╂───┨',
+                                                    '│   │   │   │   │   │   ┃   ┃',
+                                                    '├9──┼───┼───┼───┼10─┼───╂───┨',
+                                                    '│   │   │   │░░░│   │   ┃   ┃',
+                                                    '├11─┼───┼───┼12─┼───┼───╂───┨',
+                                                    '│   │   │   │   │   │   ┃   ┃',
+                                                    '├13─┼───┼───┼───┼───┼───╂───┨',
+                                                    '│   │   │   │   │   │   ┃   ┃',
+                                                    '├───┼14─┼───┼───┼───┼───╄━━━┩',
+                                                    '│░░░│   │   │   │   │   │░░░│',
+                                                    '└───┴───┴───┴───┴───┴───┴───┘'])
 
 if __name__ == '__main__':
     unittest.main()

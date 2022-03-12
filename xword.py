@@ -187,8 +187,11 @@ class Grid:
                     horizontal_edge_char = BOX_DRAWING_CHARS[Shape.HORIZONTAL][horizontal_edge_boldness]
                     if y < self.height:
                         square = self.get(x, y)
-                        clue_number = square.displayed_clue_number()
-                        clue_number_string = str(clue_number) if clue_number is not None else ''
+                        if square is not None:
+                            clue_number = square.displayed_clue_number()
+                            clue_number_string = str(clue_number) if clue_number is not None else ''
+                        else:
+                            clue_number_string = ''
                     else:
                         clue_number_string = ''
                     horizontal_edge = clue_number_string.ljust(3, horizontal_edge_char)
@@ -209,7 +212,7 @@ class Grid:
 
                 if x < self.width and y < self.height:
                     square = self.get(x, y)
-                    line += square.render()
+                    line += '░░░' if square is None else square.render()
 
             lines.append(line)
 
@@ -257,8 +260,6 @@ class Square:
         return None
 
     def render(self) -> str:
-        if self.is_black():
-            return '░░░'
         return f'   ' # TODO: hard-code to be blank for now
 
 class Cursor:

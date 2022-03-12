@@ -94,6 +94,12 @@ class Square:
     def is_white(self) -> bool:
         return not self.is_black()
 
+    def is_start(self, direction: Direction) -> bool:
+        return self is self.word[direction].squares[0]
+
+    def is_end(self, direction: Direction) -> bool:
+        return self is self.word[direction].squares[-1]
+
 class Cursor:
     def __init__(self, square: Square, direction: Direction, grid: Grid) -> None:
         self.square    = square
@@ -175,13 +181,13 @@ class Cursor:
         return self
 
     def w(self) -> Cursor:
-        return self.jump_to_next_square(lambda square, direction: square is square.word[direction].squares[0])
+        return self.jump_to_next_square(lambda square, direction: square.is_start(direction))
 
     def b(self) -> Cursor:
-        return self.jump_to_prev_square(lambda square, direction: square is square.word[direction].squares[0])
+        return self.jump_to_prev_square(lambda square, direction: square.is_start(direction))
 
     def e(self) -> Cursor:
-        return self.jump_to_next_square(lambda square, direction: square is square.word[direction].squares[-1])
+        return self.jump_to_next_square(lambda square, direction: square.is_end(direction))
 
     def ge(self) -> Cursor:
-        return self.jump_to_prev_square(lambda square, direction: square is square.word[direction].squares[-1])
+        return self.jump_to_prev_square(lambda square, direction: square.is_end(direction))

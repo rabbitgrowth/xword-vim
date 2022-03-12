@@ -12,9 +12,9 @@ class Direction(enum.Enum):
     DOWN   = enum.auto()
 
 class Grid:
-    def __init__(self, grid: list[list[str | None]]) -> None:
+    def __init__(self, solution: list[list[str | None]]) -> None:
         self.grid = [[Square(x, y, solution) for x, solution in enumerate(row)]
-                     for y, row in enumerate(grid)]
+                     for y, row in enumerate(solution)]
 
         self.width  = len(self.grid[0])
         self.height = len(self.grid)

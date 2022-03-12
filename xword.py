@@ -99,8 +99,7 @@ class Square:
 
         self.prev: dict[Direction, Square | None] = {direction: None for direction in Direction}
         self.next: dict[Direction, Square | None] = {direction: None for direction in Direction}
-
-        self.word: dict[Direction, Word] = {}
+        self.word: dict[Direction, Word   | None] = {direction: None for direction in Direction}
 
     @property
     def coords(self) -> tuple[int, int]:
@@ -113,10 +112,16 @@ class Square:
         return not self.is_black()
 
     def is_start(self, direction: Direction) -> bool:
-        return self is self.word[direction].squares[0]
+        word = self.word[direction]
+        if word is None:
+            return False
+        return self is word.squares[0]
 
     def is_end(self, direction: Direction) -> bool:
-        return self is self.word[direction].squares[-1]
+        word = self.word[direction]
+        if word is None:
+            return False
+        return self is word.squares[-1]
 
 class Cursor:
     def __init__(self, square: Square, direction: Direction, grid: Grid) -> None:

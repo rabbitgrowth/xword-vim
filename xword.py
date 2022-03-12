@@ -12,9 +12,10 @@ class Direction(enum.Enum):
     DOWN   = enum.auto()
 
 class Grid:
-    def __init__(self, solution: list[list[str | None]]) -> None:
-        self.grid = [[Square(x, y, solution) for x, solution in enumerate(row)]
-                     for y, row in enumerate(solution)]
+    def __init__(self, solutions: list[list[str | None]]) -> None:
+        self.grid = [[None if solution is None else Square(x, y, solution)
+                      for x, solution in enumerate(row)]
+                     for y, row in enumerate(solutions)]
 
         self.width  = len(self.grid[0])
         self.height = len(self.grid)
@@ -23,8 +24,8 @@ class Grid:
         starts: dict[Square, dict[Direction, list[Square]]] = collections.defaultdict(dict)
         for direction, grid in zip(Direction, (self.grid, self.transpose())):
             for row in grid:
-                for is_white, square_group in itertools.groupby(row, lambda square: square.is_white()):
-                    if is_white:
+                for is_not_none, square_group in itertools.groupby(row, lambda square: square is not None):
+                    if is_not_none:
                         square_list = list(square_group)
                         start = square_list[0]
                         starts[start][direction] = square_list
@@ -54,16 +55,16 @@ class Grid:
                     prev_square = square
                 prev_word = word
 
-    def transpose(self) -> list[list[Square]]:
+    def transpose(self) -> list[list[Square | None]]:
         return list(map(list, zip(*self.grid)))
 
     def within_bounds(self, x: int, y: int) -> bool:
         return 0 <= x < self.width and 0 <= y < self.height
 
     def get(self, x: int, y: int) -> Square | None:
-        if self.within_bounds(x, y):
-            return self.grid[y][x]
-        return None
+        if not self.within_bounds(x, y):
+            raise IndexError
+        return self.grid[y][x]
 
     def first_word(self, direction: Direction) -> Word:
         return self.words[direction][0]
@@ -79,7 +80,6 @@ class Grid:
 
 class Word:
     def __init__(self, squares: list[Square], clue_number: int) -> None:
-        assert all(square.is_white() for square in squares)
         self.squares     = squares
         self.clue_number = clue_number
 
@@ -93,40 +93,28 @@ class Word:
         return self.squares[-1]
 
 class Square:
-    def __init__(self, x: int, y: int, solution: str | None) -> None:
+    def __init__(self, x: int, y: int, solution: str) -> None:
         self.x = x
         self.y = y
         self.solution = solution
 
         self.prev: dict[Direction, Square | None] = {direction: None for direction in Direction}
         self.next: dict[Direction, Square | None] = {direction: None for direction in Direction}
-        self.word: dict[Direction, Word   | None] = {direction: None for direction in Direction}
+
+        self.word: dict[Direction, Word] = {}
 
     @property
     def coords(self) -> tuple[int, int]:
         return self.x, self.y
 
-    def is_black(self) -> bool:
-        return self.solution is None
-
-    def is_white(self) -> bool:
-        return not self.is_black()
-
     def is_start(self, direction: Direction) -> bool:
-        word = self.word[direction]
-        if word is None:
-            return False
-        return self is word.squares[0]
+        return self is self.word[direction].squares[0]
 
     def is_end(self, direction: Direction) -> bool:
-        word = self.word[direction]
-        if word is None:
-            return False
-        return self is word.squares[-1]
+        return self is self.word[direction].squares[-1]
 
 class Cursor:
     def __init__(self, square: Square, direction: Direction, grid: Grid) -> None:
-        assert square.is_white()
         self.square    = square
         self.direction = direction
         self.grid      = grid
@@ -140,10 +128,11 @@ class Cursor:
         while True:
             x += dx
             y += dy
-            square = self.grid.get(x, y)
-            if square is None:
+            try:
+                square = self.grid.get(x, y)
+            except IndexError:
                 return self
-            elif square.is_white():
+            if square is not None:
                 return Cursor(square, self.direction, self.grid)
             else:
                 dx = sign(dx)

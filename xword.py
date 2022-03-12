@@ -65,6 +65,18 @@ class Grid:
             return self.grid[y][x]
         return None
 
+    def first_word(self, direction: Direction) -> Word:
+        return self.words[direction][0]
+
+    def last_word(self, direction: Direction) -> Word:
+        return self.words[direction][-1]
+
+    def first_square(self, direction: Direction) -> Square:
+        return self.first_word(direction).first_square()
+
+    def last_square(self, direction: Direction) -> Square:
+        return self.last_word(direction).last_square()
+
 class Word:
     def __init__(self, squares: list[Square], clue_number: int) -> None:
         self.squares     = squares
@@ -72,6 +84,12 @@ class Word:
 
         self.prev: Word | None = None
         self.next: Word | None = None
+
+    def first_square(self) -> Square:
+        return self.squares[0]
+
+    def last_square(self) -> Square:
+        return self.squares[-1]
 
 class Square:
     def __init__(self, x: int, y: int, solution: str | None) -> None:
@@ -142,11 +160,11 @@ class Cursor:
         while square is not None:
             yield square, self.direction
             square = square.next[self.direction]
-        square = self.grid.words[self.other_direction][0].squares[0]
+        square = self.grid.first_square(self.other_direction)
         while square is not None:
             yield square, self.other_direction
             square = square.next[self.other_direction]
-        square = self.grid.words[self.direction][0].squares[0]
+        square = self.grid.first_square(self.direction)
         while square is not start:
             assert square is not None
             yield square, self.direction
@@ -158,11 +176,11 @@ class Cursor:
         while square is not None:
             yield square, self.direction
             square = square.prev[self.direction]
-        square = self.grid.words[self.other_direction][-1].squares[-1]
+        square = self.grid.last_square(self.other_direction)
         while square is not None:
             yield square, self.other_direction
             square = square.prev[self.other_direction]
-        square = self.grid.words[self.direction][-1].squares[-1]
+        square = self.grid.last_square(self.direction)
         while square is not start:
             assert square is not None
             yield square, self.direction

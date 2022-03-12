@@ -79,6 +79,7 @@ class Grid:
 
 class Word:
     def __init__(self, squares: list[Square], clue_number: int) -> None:
+        assert all(square.is_white() for square in squares)
         self.squares     = squares
         self.clue_number = clue_number
 
@@ -125,6 +126,7 @@ class Square:
 
 class Cursor:
     def __init__(self, square: Square, direction: Direction, grid: Grid) -> None:
+        assert square.is_white()
         self.square    = square
         self.direction = direction
         self.grid      = grid

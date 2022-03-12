@@ -54,6 +54,17 @@ class TestMiniPuzzle(unittest.TestCase):
             square = square.next[xword.Direction.DOWN]
         self.assertEqual(square.solution, 'E')
 
+    def test_displayed_clue_numbers(self):
+        self.assertEqual([[square.displayed_clue_number() for square in row]
+                          for row in self.grid.grid],
+                         [[None, 1,    2,    3,    4,    5,    None],
+                          [6,    None, None, None, None, None, 7   ],
+                          [8,    None, None, None, None, None, None],
+                          [9,    None, None, None, 10,   None, None],
+                          [11,   None, None, 12,   None, None, None],
+                          [13,   None, None, None, None, None, None],
+                          [None, 14,   None, None, None, None, None]])
+
     def test_up_down_left_right(self):
         cursor = xword.Cursor(self.grid.get(2, 3), xword.Direction.ACROSS, self.grid)
         self.assertEqual(cursor.h().square.coords, (1, 3))

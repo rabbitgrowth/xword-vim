@@ -11,10 +11,62 @@ class Direction(enum.Enum):
     ACROSS = enum.auto()
     DOWN   = enum.auto()
 
+class Shape(enum.Enum):
+    DOWN_AND_RIGHT          = enum.auto()
+    DOWN_AND_HORIZONTAL     = enum.auto()
+    DOWN_AND_LEFT           = enum.auto()
+    VERTICAL_AND_RIGHT      = enum.auto()
+    VERTICAL_AND_HORIZONTAL = enum.auto()
+    VERTICAL_AND_LEFT       = enum.auto()
+    UP_AND_RIGHT            = enum.auto()
+    UP_AND_HORIZONTAL       = enum.auto()
+    UP_AND_LEFT             = enum.auto()
+    HORIZONTAL              = enum.auto()
+    VERTICAL                = enum.auto()
+    NONE                    = enum.auto()
+
+BOX_DRAWING_CHARS = {Shape.DOWN_AND_RIGHT:          {Shape.NONE:           '┌',
+                                                     Shape.DOWN_AND_RIGHT: '┏'},
+                     Shape.DOWN_AND_HORIZONTAL:     {Shape.NONE:           '┬',
+                                                     Shape.DOWN_AND_RIGHT: '┲',
+                                                     Shape.DOWN_AND_LEFT:  '┱',
+                                                     Shape.HORIZONTAL:     '┯'},
+                     Shape.DOWN_AND_LEFT:           {Shape.NONE:           '┐',
+                                                     Shape.DOWN_AND_LEFT:  '┓'},
+                     Shape.VERTICAL_AND_RIGHT:      {Shape.NONE:           '├',
+                                                     Shape.DOWN_AND_RIGHT: '┢',
+                                                     Shape.UP_AND_RIGHT:   '┡',
+                                                     Shape.VERTICAL:       '┠'},
+                     Shape.VERTICAL_AND_HORIZONTAL: {Shape.NONE:           '┼',
+                                                     Shape.DOWN_AND_RIGHT: '╆',
+                                                     Shape.DOWN_AND_LEFT:  '╅',
+                                                     Shape.UP_AND_RIGHT:   '╄',
+                                                     Shape.UP_AND_LEFT:    '╃',
+                                                     Shape.HORIZONTAL:     '┿',
+                                                     Shape.VERTICAL:       '╂'},
+                     Shape.VERTICAL_AND_LEFT:       {Shape.NONE:           '┤',
+                                                     Shape.DOWN_AND_LEFT:  '┪',
+                                                     Shape.UP_AND_LEFT:    '┩',
+                                                     Shape.VERTICAL:       '┨'},
+                     Shape.UP_AND_RIGHT:            {Shape.NONE:           '└',
+                                                     Shape.UP_AND_RIGHT:   '┗'},
+                     Shape.UP_AND_HORIZONTAL:       {Shape.NONE:           '┴',
+                                                     Shape.UP_AND_RIGHT:   '┺',
+                                                     Shape.UP_AND_LEFT:    '┹',
+                                                     Shape.HORIZONTAL:     '┷'},
+                     Shape.UP_AND_LEFT:             {Shape.NONE:           '┘',
+                                                     Shape.UP_AND_LEFT:    '┛'},
+                     Shape.HORIZONTAL:              {Shape.NONE:           '─',
+                                                     Shape.HORIZONTAL:     '━'},
+                     Shape.VERTICAL:                {Shape.NONE:           '│',
+                                                     Shape.VERTICAL:       '┃'}}
+
+
 class Grid:
-    def __init__(self, solution: list[list[str | None]]) -> None:
-        self.grid = [[Square(x, y, solution) for x, solution in enumerate(row)]
-                     for y, row in enumerate(solution)]
+    def __init__(self, solutions: list[list[str | None]]) -> None:
+        self.grid = [[None if solution is None else Square(x, y, solution)
+                      for x, solution in enumerate(row)]
+                     for y, row in enumerate(solutions)]
 
         self.width  = len(self.grid[0])
         self.height = len(self.grid)
@@ -23,8 +75,8 @@ class Grid:
         starts: dict[Square, dict[Direction, list[Square]]] = collections.defaultdict(dict)
         for direction, grid in zip(Direction, (self.grid, self.transpose())):
             for row in grid:
-                for is_white, square_group in itertools.groupby(row, lambda square: square.is_white()):
-                    if is_white:
+                for is_not_none, square_group in itertools.groupby(row, lambda square: square is not None):
+                    if is_not_none:
                         square_list = list(square_group)
                         start = square_list[0]
                         starts[start][direction] = square_list
@@ -54,16 +106,16 @@ class Grid:
                     prev_square = square
                 prev_word = word
 
-    def transpose(self) -> list[list[Square]]:
+    def transpose(self) -> list[list[Square | None]]:
         return list(map(list, zip(*self.grid)))
 
     def within_bounds(self, x: int, y: int) -> bool:
         return 0 <= x < self.width and 0 <= y < self.height
 
     def get(self, x: int, y: int) -> Square | None:
-        if self.within_bounds(x, y):
-            return self.grid[y][x]
-        return None
+        if not self.within_bounds(x, y):
+            raise IndexError
+        return self.grid[y][x]
 
     def first_word(self, direction: Direction) -> Word:
         return self.words[direction][0]
@@ -77,9 +129,102 @@ class Grid:
     def last_square(self, direction: Direction) -> Square:
         return self.last_word(direction).last_square()
 
+    def get_boldness(self, cursor: Cursor) -> dict[tuple[int, int], Shape]:
+        boldness = {}
+        square = cursor.word.squares[0]
+
+        if cursor.direction == Direction.ACROSS:
+            boldness[(square.x, square.y    )] = Shape.DOWN_AND_RIGHT
+            boldness[(square.x, square.y + 1)] = Shape.UP_AND_RIGHT
+            for square in cursor.word.squares[1:]:
+                boldness[(square.x, square.y    )] = Shape.HORIZONTAL
+                boldness[(square.x, square.y + 1)] = Shape.HORIZONTAL
+            boldness[(square.x + 1, square.y    )] = Shape.DOWN_AND_LEFT
+            boldness[(square.x + 1, square.y + 1)] = Shape.UP_AND_LEFT
+        else:
+            boldness[(square.x,     square.y)] = Shape.DOWN_AND_RIGHT
+            boldness[(square.x + 1, square.y)] = Shape.DOWN_AND_LEFT
+            for square in cursor.word.squares[1:]:
+                boldness[(square.x,     square.y)] = Shape.VERTICAL
+                boldness[(square.x + 1, square.y)] = Shape.VERTICAL
+            boldness[(square.x,     square.y + 1)] = Shape.UP_AND_RIGHT
+            boldness[(square.x + 1, square.y + 1)] = Shape.UP_AND_LEFT
+
+        return boldness
+
+    def render(self, cursor: Cursor) -> list[str]:
+        lines = []
+        boldness = self.get_boldness(cursor)
+
+        for y in range(self.height + 1):
+            line = ''
+            for x in range(self.width + 1):
+                if x == 0:
+                    if y == 0:
+                        vertex_shape = Shape.DOWN_AND_RIGHT
+                    elif y < self.height:
+                        vertex_shape = Shape.VERTICAL_AND_RIGHT
+                    else:
+                        vertex_shape = Shape.UP_AND_RIGHT
+                elif x < self.width:
+                    if y == 0:
+                        vertex_shape = Shape.DOWN_AND_HORIZONTAL
+                    elif y < self.height:
+                        vertex_shape = Shape.VERTICAL_AND_HORIZONTAL
+                    else:
+                        vertex_shape = Shape.UP_AND_HORIZONTAL
+                else:
+                    if y == 0:
+                        vertex_shape = Shape.DOWN_AND_LEFT
+                    elif y < self.height:
+                        vertex_shape = Shape.VERTICAL_AND_LEFT
+                    else:
+                        vertex_shape = Shape.UP_AND_LEFT
+                vertex_boldness = boldness.get((x, y), Shape.NONE)
+                vertex = BOX_DRAWING_CHARS[vertex_shape][vertex_boldness]
+                line += vertex
+
+                if x < self.width:
+                    if vertex_boldness in (Shape.DOWN_AND_RIGHT, Shape.UP_AND_RIGHT, Shape.HORIZONTAL):
+                        horizontal_edge_boldness = Shape.HORIZONTAL
+                    else:
+                        horizontal_edge_boldness = Shape.NONE
+                    horizontal_edge_char = BOX_DRAWING_CHARS[Shape.HORIZONTAL][horizontal_edge_boldness]
+                    if y < self.height:
+                        square = self.get(x, y)
+                        if square is not None:
+                            clue_number = square.displayed_clue_number()
+                            clue_number_string = str(clue_number) if clue_number is not None else ''
+                        else:
+                            clue_number_string = ''
+                    else:
+                        clue_number_string = ''
+                    horizontal_edge = clue_number_string.ljust(3, horizontal_edge_char)
+                    line += horizontal_edge
+
+            lines.append(line)
+
+            if y < self.height:
+                line = ''
+                for x in range(self.width + 1):
+                    vertex_boldness = boldness.get((x, y), Shape.NONE)
+                    if vertex_boldness in (Shape.DOWN_AND_RIGHT, Shape.DOWN_AND_LEFT, Shape.VERTICAL):
+                        vertical_edge_boldness = Shape.VERTICAL
+                    else:
+                        vertical_edge_boldness = Shape.NONE
+                    vertical_edge = BOX_DRAWING_CHARS[Shape.VERTICAL][vertical_edge_boldness]
+                    line += vertical_edge
+
+                    if x < self.width:
+                        square = self.get(x, y)
+                        line += '░░░' if square is None else square.render()
+
+                lines.append(line)
+
+        return lines
+
 class Word:
     def __init__(self, squares: list[Square], clue_number: int) -> None:
-        assert all(square.is_white() for square in squares)
         self.squares     = squares
         self.clue_number = clue_number
 
@@ -93,43 +238,46 @@ class Word:
         return self.squares[-1]
 
 class Square:
-    def __init__(self, x: int, y: int, solution: str | None) -> None:
+    def __init__(self, x: int, y: int, solution: str) -> None:
         self.x = x
         self.y = y
         self.solution = solution
 
         self.prev: dict[Direction, Square | None] = {direction: None for direction in Direction}
         self.next: dict[Direction, Square | None] = {direction: None for direction in Direction}
-        self.word: dict[Direction, Word   | None] = {direction: None for direction in Direction}
+
+        self.word: dict[Direction, Word] = {}
 
     @property
     def coords(self) -> tuple[int, int]:
         return self.x, self.y
 
-    def is_black(self) -> bool:
-        return self.solution is None
-
-    def is_white(self) -> bool:
-        return not self.is_black()
-
     def is_start(self, direction: Direction) -> bool:
-        word = self.word[direction]
-        if word is None:
-            return False
-        return self is word.squares[0]
+        return self is self.word[direction].squares[0]
 
     def is_end(self, direction: Direction) -> bool:
-        word = self.word[direction]
-        if word is None:
-            return False
-        return self is word.squares[-1]
+        return self is self.word[direction].squares[-1]
+
+    def displayed_clue_number(self) -> int | None:
+        for direction in Direction:
+            if self.is_start(direction):
+                return self.word[direction].clue_number
+        return None
+
+    def render(self) -> str:
+        return f'   ' # TODO: hard-code to be blank for now
 
 class Cursor:
     def __init__(self, square: Square, direction: Direction, grid: Grid) -> None:
-        assert square.is_white()
         self.square    = square
         self.direction = direction
         self.grid      = grid
+
+    @property
+    def word(self) -> Word:
+        word = self.square.word[self.direction]
+        assert word is not None
+        return word
 
     @property
     def other_direction(self) -> Direction:
@@ -140,10 +288,11 @@ class Cursor:
         while True:
             x += dx
             y += dy
-            square = self.grid.get(x, y)
-            if square is None:
+            try:
+                square = self.grid.get(x, y)
+            except IndexError:
                 return self
-            elif square.is_white():
+            if square is not None:
                 return Cursor(square, self.direction, self.grid)
             else:
                 dx = sign(dx)

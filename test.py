@@ -80,5 +80,23 @@ class TestMiniPuzzle(unittest.TestCase):
         cursor = cursor.ge().ge().ge().ge()
         self.assertEqual(cursor.square.coords, (0, 5))
 
+    def test_rendering(self):
+        cursor = xword.Cursor(self.grid.get(6, 3), xword.Direction.DOWN, self.grid)
+        self.assertEqual(self.grid.render(cursor), ['┌───┬1──┬2──┬3──┬4──┬5──┬───┐',
+                                                    '│░░░│   │   │   │   │   │░░░│',
+                                                    '├6──┼───┼───┼───┼───┼───╆7━━┪',
+                                                    '│   │   │   │   │   │   ┃   ┃',
+                                                    '├8──┼───┼───┼───┼───┼───╂───┨',
+                                                    '│   │   │   │   │   │   ┃   ┃',
+                                                    '├9──┼───┼───┼───┼10─┼───╂───┨',
+                                                    '│   │   │   │░░░│   │   ┃   ┃',
+                                                    '├11─┼───┼───┼12─┼───┼───╂───┨',
+                                                    '│   │   │   │   │   │   ┃   ┃',
+                                                    '├13─┼───┼───┼───┼───┼───╂───┨',
+                                                    '│   │   │   │   │   │   ┃   ┃',
+                                                    '├───┼14─┼───┼───┼───┼───╄━━━┩',
+                                                    '│░░░│   │   │   │   │   │░░░│',
+                                                    '└───┴───┴───┴───┴───┴───┴───┘'])
+
 if __name__ == '__main__':
     unittest.main()

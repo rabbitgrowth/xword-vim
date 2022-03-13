@@ -66,7 +66,6 @@ class Grid:
         self.grid = [[Square(x, y, solution) if solution is not None else None
                       for x, solution in enumerate(row)]
                      for y, row in enumerate(solutions)]
-
         self.width  = len(self.grid[0])
         self.height = len(self.grid)
 
@@ -135,7 +134,6 @@ class Grid:
     def get_boldness(self, cursor: Cursor) -> dict[tuple[int, int], Shape]:
         boldness = {}
         square = cursor.word.squares[0]
-
         if cursor.direction == Direction.ACROSS:
             boldness[(square.x, square.y    )] = Shape.DOWN_AND_RIGHT
             boldness[(square.x, square.y + 1)] = Shape.UP_AND_RIGHT
@@ -152,13 +150,11 @@ class Grid:
                 boldness[(square.x + 1, square.y)] = Shape.VERTICAL
             boldness[(square.x,     square.y + 1)] = Shape.UP_AND_RIGHT
             boldness[(square.x + 1, square.y + 1)] = Shape.UP_AND_LEFT
-
         return boldness
 
     def render(self, cursor: Cursor) -> list[str]:
         lines = []
         boldness = self.get_boldness(cursor)
-
         for y in range(self.height + 1):
             line = ''
             for x in range(self.width + 1):
@@ -186,7 +182,6 @@ class Grid:
                 vertex_boldness = boldness.get((x, y), Shape.NONE)
                 vertex = BOX_DRAWING_CHARS[vertex_shape][vertex_boldness]
                 line += vertex
-
                 if x < self.width:
                     if vertex_boldness in (Shape.DOWN_AND_RIGHT, Shape.UP_AND_RIGHT, Shape.HORIZONTAL):
                         horizontal_edge_boldness = Shape.HORIZONTAL
@@ -204,9 +199,7 @@ class Grid:
                         clue_number_string = ''
                     horizontal_edge = clue_number_string.ljust(3, horizontal_edge_char)
                     line += horizontal_edge
-
             lines.append(line)
-
             if y < self.height:
                 line = ''
                 for x in range(self.width + 1):
@@ -217,20 +210,16 @@ class Grid:
                         vertical_edge_boldness = Shape.NONE
                     vertical_edge = BOX_DRAWING_CHARS[Shape.VERTICAL][vertical_edge_boldness]
                     line += vertical_edge
-
                     if x < self.width:
                         square = self.get(x, y)
                         line += '░░░' if square is None else square.render()
-
                 lines.append(line)
-
         return lines
 
 class Word:
     def __init__(self, squares: list[Square], clue_number: int) -> None:
         self.squares     = squares
         self.clue_number = clue_number
-
         self.prev: Word | None = None
         self.next: Word | None = None
 
@@ -245,10 +234,8 @@ class Square:
         self.x = x
         self.y = y
         self.solution = solution
-
         self.prev: dict[Direction, Square | None] = {direction: None for direction in Direction}
         self.next: dict[Direction, Square | None] = {direction: None for direction in Direction}
-
         self.word: dict[Direction, Word] = {}
 
     @property

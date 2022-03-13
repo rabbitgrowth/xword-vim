@@ -100,7 +100,7 @@ class Grid:
                 if prev_word is not None:
                     word.prev = prev_word
                     prev_word.next = word
-                for square in word.squares:
+                for square in word:
                     square.word[direction] = word
                     if prev_square is not None:
                         square.prev[direction] = prev_square
@@ -119,25 +119,19 @@ class Grid:
             raise IndexError
         return self.grid[y][x]
 
-    def first_word(self, direction: Direction) -> Word:
-        return self.words[direction][0]
-
-    def last_word(self, direction: Direction) -> Word:
-        return self.words[direction][-1]
-
     def first_square(self, direction: Direction) -> Square:
-        return self.first_word(direction).first_square()
+        return self.words[direction][0][0]
 
     def last_square(self, direction: Direction) -> Square:
-        return self.last_word(direction).last_square()
+        return self.words[direction][-1][-1]
 
     def get_boldness(self, cursor: Cursor) -> dict[tuple[int, int], Shape]:
         boldness = {}
-        square = cursor.word.squares[0]
+        square = cursor.word[0]
         if cursor.direction == Direction.ACROSS:
             boldness[(square.x, square.y    )] = Shape.DOWN_AND_RIGHT
             boldness[(square.x, square.y + 1)] = Shape.UP_AND_RIGHT
-            for square in cursor.word.squares[1:]:
+            for square in cursor.word[1:]:
                 boldness[(square.x, square.y    )] = Shape.HORIZONTAL
                 boldness[(square.x, square.y + 1)] = Shape.HORIZONTAL
             boldness[(square.x + 1, square.y    )] = Shape.DOWN_AND_LEFT
@@ -145,7 +139,7 @@ class Grid:
         else:
             boldness[(square.x,     square.y)] = Shape.DOWN_AND_RIGHT
             boldness[(square.x + 1, square.y)] = Shape.DOWN_AND_LEFT
-            for square in cursor.word.squares[1:]:
+            for square in cursor.word[1:]:
                 boldness[(square.x,     square.y)] = Shape.VERTICAL
                 boldness[(square.x + 1, square.y)] = Shape.VERTICAL
             boldness[(square.x,     square.y + 1)] = Shape.UP_AND_RIGHT
@@ -223,11 +217,8 @@ class Word:
         self.prev: Word | None = None
         self.next: Word | None = None
 
-    def first_square(self) -> Square:
-        return self.squares[0]
-
-    def last_square(self) -> Square:
-        return self.squares[-1]
+    def __getitem__(self, i: int) -> Square:
+        return self.squares[i]
 
 class Square:
     def __init__(self, x: int, y: int, solution: str) -> None:
@@ -243,10 +234,10 @@ class Square:
         return self.x, self.y
 
     def is_start(self, direction: Direction) -> bool:
-        return self is self.word[direction].squares[0]
+        return self is self.word[direction][0]
 
     def is_end(self, direction: Direction) -> bool:
-        return self is self.word[direction].squares[-1]
+        return self is self.word[direction][-1]
 
     def displayed_clue_number(self) -> int | None:
         for direction in Direction:

@@ -29,10 +29,10 @@ class TestMiniPuzzle(unittest.TestCase):
         self.assertEqual(self.grid.height, 7)
 
     def test_square_runs(self):
-        self.assertEqual([''.join(square.solution for square in word.squares)
+        self.assertEqual([''.join(square.solution for square in word)
                           for word in self.grid.words[xword.Direction.ACROSS]],
                          ['RACED', 'BELARUS', 'LABTECH', 'ALE', 'CHE', 'KIRSTIE', 'ESTREET', 'MAIDS'])
-        self.assertEqual([''.join(square.solution for square in word.squares)
+        self.assertEqual([''.join(square.solution for square in word)
                           for word in self.grid.words[xword.Direction.DOWN]],
                          ['REALISM', 'ALBERTA', 'CAT', 'ERECTED', 'DUCHIES', 'BLAKE', 'SHEET', 'SRI'])
 
@@ -40,7 +40,7 @@ class TestMiniPuzzle(unittest.TestCase):
         word = self.grid.words[xword.Direction.ACROSS][0]
         self.assertIsNone(word.prev)
         self.assertIs(word.next.prev, word)
-        self.assertEqual(''.join(square.solution for square in word.next.squares), 'BELARUS')
+        self.assertEqual(''.join(square.solution for square in word.next), 'BELARUS')
 
     def test_square_links(self):
         square = self.grid.get(1, 0)

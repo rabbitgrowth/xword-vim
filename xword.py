@@ -2,7 +2,6 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator
 import collections
 import enum
-import itertools
 
 def sign(n: int) -> int:
     return (n > 0) - (n < 0)
@@ -75,11 +74,15 @@ class Grid:
         starts: dict[Square, dict[Direction, list[Square]]] = collections.defaultdict(dict)
         for direction, grid in zip(Direction, (self.grid, self.transpose())):
             for row in grid:
-                for is_not_none, square_group in itertools.groupby(row, lambda square: square is not None):
-                    if is_not_none:
-                        square_list = list(square_group)
-                        start = square_list[0]
-                        starts[start][direction] = square_list
+                run = []
+                for square in row:
+                    if square is not None:
+                        run.append(square)
+                    elif run:
+                        starts[run[0]][direction] = run
+                        run = []
+                if run:
+                    starts[run[0]][direction] = run
 
         # Assign clue numbers to words
         self.words: dict[Direction, list[Word]] = collections.defaultdict(list)

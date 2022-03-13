@@ -129,10 +129,10 @@ class Grid:
     def last_square(self, direction: Direction) -> Square:
         return self.last_word(direction).last_square()
 
-    def render(self, cursor: Cursor) -> list[str]:
-        boldness: dict[tuple[int, int], Shape] = {}
-
+    def get_boldness(self, cursor: Cursor) -> dict[tuple[int, int], Shape]:
+        boldness = {}
         square = cursor.word.squares[0]
+
         if cursor.direction == Direction.ACROSS:
             boldness[(square.x, square.y    )] = Shape.DOWN_AND_RIGHT
             boldness[(square.x, square.y + 1)] = Shape.UP_AND_RIGHT
@@ -150,7 +150,12 @@ class Grid:
             boldness[(square.x,     square.y + 1)] = Shape.UP_AND_RIGHT
             boldness[(square.x + 1, square.y + 1)] = Shape.UP_AND_LEFT
 
+        return boldness
+
+    def render(self, cursor: Cursor) -> list[str]:
         lines = []
+        boldness = self.get_boldness(cursor)
+
         for y in range(self.height + 1):
             line = ''
             for x in range(self.width + 1):

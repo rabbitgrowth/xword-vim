@@ -22,7 +22,6 @@ class TestMiniPuzzle(unittest.TestCase):
                                  'KIRSTIE',
                                  'ESTREET',
                                  '.MAIDS.']]
-
         self.grid = xword.Grid(solution)
 
     def test_width_and_height(self):

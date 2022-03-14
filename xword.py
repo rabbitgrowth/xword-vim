@@ -240,22 +240,30 @@ class Square:
         self.solution = solution
         self.prev: dict[Direction, Square | None] = dict.fromkeys(Direction)
         self.next: dict[Direction, Square | None] = dict.fromkeys(Direction)
-        self.word: dict[Direction, Word] = {}
+        self.word: dict[Direction, Word   | None] = dict.fromkeys(Direction)
 
     def __iter__(self) -> Iterator[int]:
         yield self.x
         yield self.y
 
     def is_start(self, direction: Direction) -> bool:
-        return self is self.word[direction][0]
+        word = self.word[direction]
+        if word is None:
+            return False
+        return self is word[0]
 
     def is_end(self, direction: Direction) -> bool:
-        return self is self.word[direction][-1]
+        word = self.word[direction]
+        if word is None:
+            return False
+        return self is word[-1]
 
     def displayed_clue_number(self) -> int | None:
         for direction in Direction:
             if self.is_start(direction):
-                return self.word[direction].clue_number
+                word = self.word[direction]
+                assert word is not None
+                return word.clue_number
         return None
 
     def render(self) -> str:

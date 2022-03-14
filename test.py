@@ -28,6 +28,17 @@ class TestMiniPuzzle(unittest.TestCase):
         self.assertEqual(self.grid.width,  7)
         self.assertEqual(self.grid.height, 7)
 
+    def test_bounds_checking(self):
+        self.assertTrue(self.grid.within_bounds(0, 0))
+        self.assertTrue(self.grid.within_bounds(2, 3))
+        self.assertTrue(self.grid.within_bounds(6, 6))
+        self.assertFalse(self.grid.within_bounds(7, 6))
+        self.assertFalse(self.grid.within_bounds(0, -1))
+        with self.assertRaises(IndexError):
+            self.grid.get(7, 6)
+        with self.assertRaises(IndexError):
+            self.grid.get(0, -1)
+
     def test_square_runs(self):
         self.assertEqual([''.join(square.solution for square in word)
                           for word in self.grid.words[xword.Direction.ACROSS]],

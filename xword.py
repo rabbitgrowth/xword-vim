@@ -238,8 +238,8 @@ class Square:
         self.x = x
         self.y = y
         self.solution = solution
-        self.prev: dict[Direction, Square | None] = {direction: None for direction in Direction}
-        self.next: dict[Direction, Square | None] = {direction: None for direction in Direction}
+        self.prev: dict[Direction, Square | None] = dict.fromkeys(Direction)
+        self.next: dict[Direction, Square | None] = dict.fromkeys(Direction)
         self.word: dict[Direction, Word] = {}
 
     def __iter__(self) -> Iterator[int]:

@@ -2,6 +2,7 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator
 import collections
 import enum
+import typing
 
 def sign(n: int) -> int:
     return (n > 0) - (n < 0)
@@ -127,23 +128,23 @@ class Grid:
 
     def get_boldness(self, cursor: Cursor) -> dict[tuple[int, int], Shape]:
         boldness = {}
-        square = cursor.word[0]
+        x, y = cursor.word[0]
         if cursor.direction == Direction.ACROSS:
-            boldness[(square.x, square.y    )] = Shape.DOWN_AND_RIGHT
-            boldness[(square.x, square.y + 1)] = Shape.UP_AND_RIGHT
-            for square in cursor.word[1:]:
-                boldness[(square.x, square.y    )] = Shape.HORIZONTAL
-                boldness[(square.x, square.y + 1)] = Shape.HORIZONTAL
-            boldness[(square.x + 1, square.y    )] = Shape.DOWN_AND_LEFT
-            boldness[(square.x + 1, square.y + 1)] = Shape.UP_AND_LEFT
+            boldness[(x, y    )] = Shape.DOWN_AND_RIGHT
+            boldness[(x, y + 1)] = Shape.UP_AND_RIGHT
+            for x, y in cursor.word[1:]:
+                boldness[(x, y    )] = Shape.HORIZONTAL
+                boldness[(x, y + 1)] = Shape.HORIZONTAL
+            boldness[(x + 1, y    )] = Shape.DOWN_AND_LEFT
+            boldness[(x + 1, y + 1)] = Shape.UP_AND_LEFT
         else:
-            boldness[(square.x,     square.y)] = Shape.DOWN_AND_RIGHT
-            boldness[(square.x + 1, square.y)] = Shape.DOWN_AND_LEFT
-            for square in cursor.word[1:]:
-                boldness[(square.x,     square.y)] = Shape.VERTICAL
-                boldness[(square.x + 1, square.y)] = Shape.VERTICAL
-            boldness[(square.x,     square.y + 1)] = Shape.UP_AND_RIGHT
-            boldness[(square.x + 1, square.y + 1)] = Shape.UP_AND_LEFT
+            boldness[(x,     y)] = Shape.DOWN_AND_RIGHT
+            boldness[(x + 1, y)] = Shape.DOWN_AND_LEFT
+            for x, y in cursor.word[1:]:
+                boldness[(x,     y)] = Shape.VERTICAL
+                boldness[(x + 1, y)] = Shape.VERTICAL
+            boldness[(x,     y + 1)] = Shape.UP_AND_RIGHT
+            boldness[(x + 1, y + 1)] = Shape.UP_AND_LEFT
         return boldness
 
     def render(self, cursor: Cursor) -> list[str]:
@@ -217,8 +218,20 @@ class Word:
         self.prev: Word | None = None
         self.next: Word | None = None
 
-    def __getitem__(self, i: int) -> Square:
-        return self.squares[i]
+    @typing.overload
+    def __getitem__(self, key: int) -> Square:
+        ...
+    @typing.overload
+    def __getitem__(self, key: slice) -> list[Square]:
+        ...
+    def __getitem__(self, key):
+        return self.squares[key]
+
+    def __len__(self) -> int:
+        return len(self.squares)
+
+    def __iter__(self) -> Iterator[Square]:
+        yield from self.squares
 
 class Square:
     def __init__(self, x: int, y: int, solution: str) -> None:
@@ -229,9 +242,9 @@ class Square:
         self.next: dict[Direction, Square | None] = {direction: None for direction in Direction}
         self.word: dict[Direction, Word] = {}
 
-    @property
-    def coords(self) -> tuple[int, int]:
-        return self.x, self.y
+    def __iter__(self) -> Iterator[int]:
+        yield self.x
+        yield self.y
 
     def is_start(self, direction: Direction) -> bool:
         return self is self.word[direction][0]
@@ -265,7 +278,7 @@ class Cursor:
         return Direction.DOWN if self.direction is Direction.ACROSS else Direction.ACROSS
 
     def move(self, dx: int, dy: int) -> Cursor:
-        x, y = self.square.coords
+        x, y = self.square
         while True:
             x += dx
             y += dy

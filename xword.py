@@ -61,7 +61,6 @@ BOX_DRAWING_CHARS = {Shape.DOWN_AND_RIGHT:          {Shape.NONE:           '┌'
                      Shape.VERTICAL:                {Shape.NONE:           '│',
                                                      Shape.VERTICAL:       '┃'}}
 
-
 class Grid:
     def __init__(self, solutions: list[list[str | None]]) -> None:
         self.grid = [[Square(x, y, solution) if solution is not None else None

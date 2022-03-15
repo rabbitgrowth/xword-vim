@@ -183,7 +183,7 @@ class Grid:
 
     def render(self, cursor: Cursor) -> tuple[list[str], tuple[int, int]]:
         grid_lines = []
-        boldness = {}
+        boldness   = {}
         x, y = cursor.word[0]
         if cursor.direction == Direction.ACROSS:
             boldness[(x, y    )] = Shape.DOWN_AND_RIGHT

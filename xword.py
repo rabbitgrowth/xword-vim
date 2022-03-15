@@ -1,8 +1,13 @@
 from __future__ import annotations
 from collections.abc import Callable, Iterator
 import collections
+import copy
 import enum
+import sys
+import termios
 import typing
+
+import ansi
 
 def sign(n: int) -> int:
     return (n > 0) - (n < 0)
@@ -60,6 +65,57 @@ BOX_DRAWING_CHARS = {Shape.DOWN_AND_RIGHT:          {Shape.NONE:           '┌'
                                                      Shape.HORIZONTAL:     '━'},
                      Shape.VERTICAL:                {Shape.NONE:           '│',
                                                      Shape.VERTICAL:       '┃'}}
+
+class Puzzle:
+    def __init__(self, solutions: list[list[str | None]]) -> None:
+        self.grid   = Grid(solutions)
+        self.cursor = Cursor(self.grid.first_square(Direction.ACROSS), Direction.ACROSS, self.grid)
+
+    def run(self) -> None:
+        old_attributes = termios.tcgetattr(sys.stdin)
+        new_attributes = copy.deepcopy(old_attributes)
+        new_attributes[3] &= ~(termios.ECHO | termios.ICANON) # lflags
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, new_attributes)
+        ansi.enter_alternate_buffer()
+        try:
+            while True:
+                self.render()
+                self.handle_input()
+        finally:
+            ansi.leave_alternate_buffer()
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_attributes)
+
+    def render(self) -> None:
+        ansi.clear_screen()
+        ansi.move_cursor(0, 0)
+        sys.stdout.write('\r\n'.join(self.grid.render(self.cursor)))
+        x, y = self.cursor.square
+        ansi.move_cursor(2 + x * 4, 1 + y * 2)
+        sys.stdout.flush()
+
+    def read_char(self) -> str:
+        return sys.stdin.read(1)
+
+    def handle_input(self) -> None:
+        char = self.read_char()
+        if char == 'h':
+            self.cursor = self.cursor.h()
+        elif char == 'j':
+            self.cursor = self.cursor.j()
+        elif char == 'k':
+            self.cursor = self.cursor.k()
+        elif char == 'l':
+            self.cursor = self.cursor.l()
+        elif char == 'w':
+            self.cursor = self.cursor.w()
+        elif char == 'b':
+            self.cursor = self.cursor.b()
+        elif char == 'e':
+            self.cursor = self.cursor.e()
+        elif char == 'g':
+            char = self.read_char()
+            if char == 'e':
+                self.cursor = self.cursor.ge()
 
 class Grid:
     def __init__(self, solutions: list[list[str | None]]) -> None:

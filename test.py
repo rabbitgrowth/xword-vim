@@ -14,15 +14,15 @@ class TestHelpers(unittest.TestCase):
 
 class TestMiniPuzzle(unittest.TestCase):
     def setUp(self):
-        solution = [[None if char == '.' else char for char in line]
-                    for line in ['.RACED.',
-                                 'BELARUS',
-                                 'LABTECH',
-                                 'ALE.CHE',
-                                 'KIRSTIE',
-                                 'ESTREET',
-                                 '.MAIDS.']]
-        self.grid = xword.Grid(solution)
+        solutions = [[None if char == '.' else char for char in line]
+                     for line in ['.RACED.',
+                                  'BELARUS',
+                                  'LABTECH',
+                                  'ALE.CHE',
+                                  'KIRSTIE',
+                                  'ESTREET',
+                                  '.MAIDS.']]
+        self.grid = xword.Grid(solutions)
 
     def test_width_and_height(self):
         self.assertEqual(self.grid.width,  7)

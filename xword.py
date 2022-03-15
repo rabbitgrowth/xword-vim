@@ -88,9 +88,9 @@ class Puzzle:
     def render(self) -> None:
         ansi.clear_screen()
         ansi.move_cursor(0, 0)
-        grid_lines, displayed_cursor_coords = self.grid.render(self.cursor)
+        grid_lines, cursor_coords = self.grid.render(self.cursor)
         sys.stdout.write('\r\n'.join(grid_lines))
-        ansi.move_cursor(*displayed_cursor_coords)
+        ansi.move_cursor(*cursor_coords)
         sys.stdout.flush()
 
     def read_char(self) -> str:
@@ -237,7 +237,7 @@ class Grid:
                     if y < self.height:
                         square = self.get(x, y)
                         if square is not None:
-                            clue_number = square.displayed_clue_number()
+                            clue_number = square.clue_number()
                             clue_number_string = str(clue_number) if clue_number is not None else ''
                         else:
                             clue_number_string = ''
@@ -261,8 +261,8 @@ class Grid:
                         line += '░░░' if square is None else square.render()
                 grid_lines.append(line)
         x, y = cursor.square
-        displayed_cursor_coords = (2 + x * 4, 1 + y * 2)
-        return grid_lines, displayed_cursor_coords
+        cursor_coords = (2 + x * 4, 1 + y * 2)
+        return grid_lines, cursor_coords
 
 class Word:
     def __init__(self, squares: list[Square], clue_number: int) -> None:
@@ -311,7 +311,7 @@ class Square:
             return False
         return self is word[-1]
 
-    def displayed_clue_number(self) -> int | None:
+    def clue_number(self) -> int | None:
         for direction in Direction:
             if self.is_start(direction):
                 word = self.word[direction]

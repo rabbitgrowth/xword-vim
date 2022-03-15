@@ -92,7 +92,7 @@ class TestMiniPuzzle(unittest.TestCase):
 
     def test_rendering(self):
         cursor = xword.Cursor(self.grid.get(6, 3), xword.Direction.DOWN, self.grid)
-        grid_lines, displayed_cursor_coords = self.grid.render(cursor)
+        grid_lines, cursor_coords = self.grid.render(cursor)
         self.assertEqual(grid_lines, ['┌───┬1──┬2──┬3──┬4──┬5──┬───┐',
                                       '│░░░│   │   │   │   │   │░░░│',
                                       '├6──┼───┼───┼───┼───┼───╆7━━┪',
@@ -108,7 +108,7 @@ class TestMiniPuzzle(unittest.TestCase):
                                       '├───┼14─┼───┼───┼───┼───╄━━━┩',
                                       '│░░░│   │   │   │   │   │░░░│',
                                       '└───┴───┴───┴───┴───┴───┴───┘'])
-        self.assertEqual(displayed_cursor_coords, (26, 7))
+        self.assertEqual(cursor_coords, (26, 7))
 
 if __name__ == '__main__':
     unittest.main()

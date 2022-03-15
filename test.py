@@ -90,6 +90,13 @@ class TestMiniPuzzle(unittest.TestCase):
         cursor = cursor.ge().ge().ge().ge()
         self.assertEqual(tuple(cursor.square), (0, 5))
 
+    def test_toggle_direction(self):
+        cursor = xword.Cursor(self.grid.get(1, 0), xword.Direction.ACROSS, self.grid)
+        cursor = cursor.toggle_direction()
+        self.assertIs(cursor.direction, xword.Direction.DOWN)
+        cursor = cursor.toggle_direction()
+        self.assertIs(cursor.direction, xword.Direction.ACROSS)
+
     def test_rendering(self):
         cursor = xword.Cursor(self.grid.get(6, 3), xword.Direction.DOWN, self.grid)
         grid_lines, cursor_coords = self.grid.render(cursor)

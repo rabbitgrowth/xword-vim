@@ -116,6 +116,8 @@ class Puzzle:
             char = self.read_char()
             if char == 'e':
                 self.cursor = self.cursor.ge()
+        elif char == ' ':
+            self.cursor = self.cursor.toggle_direction()
 
 class Grid:
     def __init__(self, solutions: list[list[str | None]]) -> None:
@@ -337,6 +339,9 @@ class Cursor:
     @property
     def other_direction(self) -> Direction:
         return Direction.DOWN if self.direction is Direction.ACROSS else Direction.ACROSS
+
+    def toggle_direction(self) -> Cursor:
+        return Cursor(self.square, self.other_direction, self.grid)
 
     def move(self, dx: int, dy: int) -> Cursor:
         x, y = self.square

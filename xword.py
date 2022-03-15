@@ -88,9 +88,9 @@ class Puzzle:
     def render(self) -> None:
         ansi.clear_screen()
         ansi.move_cursor(0, 0)
-        sys.stdout.write('\r\n'.join(self.grid.render(self.cursor)))
-        x, y = self.cursor.square
-        ansi.move_cursor(2 + x * 4, 1 + y * 2)
+        grid_lines, displayed_cursor_coords = self.grid.render(self.cursor)
+        sys.stdout.write('\r\n'.join(grid_lines))
+        ansi.move_cursor(*displayed_cursor_coords)
         sys.stdout.flush()
 
     def read_char(self) -> str:
@@ -181,7 +181,8 @@ class Grid:
     def last_square(self, direction: Direction) -> Square:
         return self.words[direction][-1][-1]
 
-    def get_boldness(self, cursor: Cursor) -> dict[tuple[int, int], Shape]:
+    def render(self, cursor: Cursor) -> tuple[list[str], tuple[int, int]]:
+        grid_lines = []
         boldness = {}
         x, y = cursor.word[0]
         if cursor.direction == Direction.ACROSS:
@@ -200,11 +201,6 @@ class Grid:
                 boldness[(x + 1, y)] = Shape.VERTICAL
             boldness[(x,     y + 1)] = Shape.UP_AND_RIGHT
             boldness[(x + 1, y + 1)] = Shape.UP_AND_LEFT
-        return boldness
-
-    def render(self, cursor: Cursor) -> list[str]:
-        lines = []
-        boldness = self.get_boldness(cursor)
         for y in range(self.height + 1):
             line = ''
             for x in range(self.width + 1):
@@ -249,7 +245,7 @@ class Grid:
                         clue_number_string = ''
                     horizontal_edge = clue_number_string.ljust(3, horizontal_edge_char)
                     line += horizontal_edge
-            lines.append(line)
+            grid_lines.append(line)
             if y < self.height:
                 line = ''
                 for x in range(self.width + 1):
@@ -263,8 +259,10 @@ class Grid:
                     if x < self.width:
                         square = self.get(x, y)
                         line += '░░░' if square is None else square.render()
-                lines.append(line)
-        return lines
+                grid_lines.append(line)
+        x, y = cursor.square
+        displayed_cursor_coords = (2 + x * 4, 1 + y * 2)
+        return grid_lines, displayed_cursor_coords
 
 class Word:
     def __init__(self, squares: list[Square], clue_number: int) -> None:

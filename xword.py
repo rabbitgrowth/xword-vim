@@ -71,6 +71,7 @@ class Puzzle:
     def __init__(self, solutions: list[list[str | None]], clues: list[str]) -> None:
         self.grid   = Grid(solutions, clues)
         self.cursor = Cursor(self.grid.first_square(Direction.ACROSS), Direction.ACROSS, self.grid)
+        self.clues  = {direction: Clues(self.grid, direction) for direction in Direction}
 
     def run(self) -> None:
         old_attributes = termios.tcgetattr(sys.stdin)
@@ -91,6 +92,13 @@ class Puzzle:
         ansi.move_cursor(0, 0)
         grid_lines, cursor_coords = self.grid.render(self.cursor)
         sys.stdout.write('\r\n'.join(grid_lines))
+        grid_width  = self.grid.width  * 4 + 1
+        grid_height = self.grid.height * 2 + 1
+        for direction, x in zip(Direction, (grid_width + 2, grid_width + 39)):
+            clue_lines = self.clues[direction].render(self.cursor, grid_height)
+            for y, line in enumerate(clue_lines):
+                ansi.move_cursor(x, y)
+                sys.stdout.write(line)
         ansi.move_cursor(*cursor_coords)
         sys.stdout.flush()
 

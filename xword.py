@@ -67,8 +67,8 @@ BOX_DRAWING_CHARS = {Shape.DOWN_AND_RIGHT:          {Shape.NONE:           '┌'
                                                      Shape.VERTICAL:       '┃'}}
 
 class Puzzle:
-    def __init__(self, solutions: list[list[str | None]]) -> None:
-        self.grid   = Grid(solutions)
+    def __init__(self, solutions: list[list[str | None]], clues: list[str]) -> None:
+        self.grid   = Grid(solutions, clues)
         self.cursor = Cursor(self.grid.first_square(Direction.ACROSS), Direction.ACROSS, self.grid)
 
     def run(self) -> None:
@@ -120,7 +120,7 @@ class Puzzle:
             self.cursor = self.cursor.toggle_direction()
 
 class Grid:
-    def __init__(self, solutions: list[list[str | None]]) -> None:
+    def __init__(self, solutions: list[list[str | None]], clues: list[str]) -> None:
         self.grid = [[Square(x, y, solution) if solution is not None else None
                       for x, solution in enumerate(row)]
                      for y, row in enumerate(solutions)]
@@ -141,13 +141,15 @@ class Grid:
                 if run:
                     starts[run[0]][direction] = run
 
-        # Assign clue numbers to words
+        # Assign clues to words
+        clue_iterator = iter(clues)
         self.words: dict[Direction, list[Word]] = collections.defaultdict(list)
         for clue_number, start in enumerate(sorted(starts, key=lambda square: (square.y, square.x)), start=1):
             for direction in Direction:
                 squares = starts[start].get(direction)
                 if squares is not None:
-                    word = Word(squares, clue_number)
+                    clue = Clue(clue_number, next(clue_iterator))
+                    word = Word(squares, clue)
                     self.words[direction].append(word)
 
         # Doubly-link words and squares and link squares to words
@@ -271,9 +273,9 @@ class Grid:
         return grid_lines, cursor_coords
 
 class Word:
-    def __init__(self, squares: list[Square], clue_number: int) -> None:
-        self.squares     = squares
-        self.clue_number = clue_number
+    def __init__(self, squares: list[Square], clue: Clue) -> None:
+        self.squares = squares
+        self.clue    = clue
         self.prev: Word | None = None
         self.next: Word | None = None
 
@@ -322,7 +324,7 @@ class Square:
             if self.is_start(direction):
                 word = self.word[direction]
                 assert word is not None
-                return word.clue_number
+                return word.clue.number
         return None
 
     def render(self) -> str:
@@ -429,3 +431,8 @@ class Cursor:
 
     def ge(self) -> Cursor:
         return self.jump_to_prev_square(lambda square, direction: square.is_end(direction))
+
+class Clue:
+    def __init__(self, number: int, text: str) -> None:
+        self.number = number
+        self.text   = text

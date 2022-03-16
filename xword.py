@@ -94,7 +94,7 @@ class Puzzle:
         sys.stdout.write('\r\n'.join(grid_lines))
         grid_width  = self.grid.width  * 4 + 1
         grid_height = self.grid.height * 2 + 1
-        for (direction, clues), x in zip(self.clues.items(), (grid_width + 2, grid_width + 39)):
+        for (direction, clues), x in zip(self.clues.items(), (grid_width + 2, grid_width + 36)):
             for y, line in enumerate(clues.render(self.cursor, grid_height)):
                 ansi.move_cursor(x, y)
                 sys.stdout.write(line)
@@ -446,7 +446,7 @@ class Cursor:
 
 class Clues:
     def __init__(self, grid: Grid, direction: Direction) -> None:
-        wrap = textwrap.TextWrapper(width=32).wrap
+        wrap = textwrap.TextWrapper(width=28).wrap
         self.prerender = {clue.number: wrap(clue.text) for clue in grid.clues(direction)}
         self.direction = direction
         start_index = 0

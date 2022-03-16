@@ -472,7 +472,7 @@ class Clues:
                 if number == current_clue_number and self.direction is cursor.direction:
                     line = ansi.bold(line)
                 lines.append(line)
-        start_index = self.start_indices[current_clue_number]
+        start_index = min(self.start_indices[current_clue_number], len(lines) - height)
         return lines[start_index:start_index+height]
 
 class Clue:

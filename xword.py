@@ -5,6 +5,7 @@ import copy
 import enum
 import sys
 import termios
+import textwrap
 import typing
 
 import ansi
@@ -184,6 +185,10 @@ class Grid:
 
     def last_square(self, direction: Direction) -> Square:
         return self.words[direction][-1][-1]
+
+    def clues(self, direction: Direction) -> Iterator[Clue]:
+        for word in self.words[direction]:
+            yield word.clue
 
     def render(self, cursor: Cursor) -> tuple[list[str], tuple[int, int]]:
         grid_lines = []
@@ -431,6 +436,25 @@ class Cursor:
 
     def ge(self) -> Cursor:
         return self.jump_to_prev_square(lambda square, direction: square.is_end(direction))
+
+class Clues:
+    def __init__(self, grid: Grid, direction: Direction) -> None:
+        wrap = textwrap.TextWrapper(width=32).wrap
+        self.prerender = {clue.number: wrap(clue.text) for clue in grid.clues(direction)}
+        self.direction = direction
+
+    def render(self, cursor: Cursor) -> Iterator[str]:
+        for number, clue_lines in self.prerender.items():
+            is_current = number == cursor.square.word[self.direction].clue.number
+            for i, clue_line in enumerate(clue_lines):
+                if i == 0:
+                    arrow = '>' if is_current else ' '
+                    line = f'{arrow}{number:>2} {clue_line}'
+                else:
+                    line = f'    {clue_line}'
+                if is_current and self.direction is cursor.direction:
+                    line = ansi.bold(line)
+                yield line
 
 class Clue:
     def __init__(self, number: int, text: str) -> None:

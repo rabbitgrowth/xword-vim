@@ -94,9 +94,8 @@ class Puzzle:
         sys.stdout.write('\r\n'.join(grid_lines))
         grid_width  = self.grid.width  * 4 + 1
         grid_height = self.grid.height * 2 + 1
-        for direction, x in zip(Direction, (grid_width + 2, grid_width + 39)):
-            clue_lines = self.clues[direction].render(self.cursor, grid_height)
-            for y, line in enumerate(clue_lines):
+        for (direction, clues), x in zip(self.clues.items(), (grid_width + 2, grid_width + 39)):
+            for y, line in enumerate(clues.render(self.cursor, grid_height)):
                 ansi.move_cursor(x, y)
                 sys.stdout.write(line)
         ansi.move_cursor(*cursor_coords)

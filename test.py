@@ -69,6 +69,10 @@ class TestMiniPuzzle(unittest.TestCase):
                          [1, 6, 8, 9, 10, 11, 13, 14])
         self.assertEqual([word.clue.number for word in self.grid.words[xword.Direction.DOWN]],
                          [1, 2, 3, 4, 5, 6, 7, 12])
+        self.assertEqual(self.grid.words[xword.Direction.ACROSS][2].clue.text,
+                         'Worker in a bio building')
+        self.assertEqual(self.grid.words[xword.Direction.DOWN][3].clue.text,
+                         'Put up, as a building')
 
     def test_word_links(self):
         word = self.grid.words[xword.Direction.ACROSS][0]

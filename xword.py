@@ -5,6 +5,7 @@ import copy
 import enum
 import sys
 import termios
+import textwrap
 import typing
 
 import ansi
@@ -67,9 +68,10 @@ BOX_DRAWING_CHARS = {Shape.DOWN_AND_RIGHT:          {Shape.NONE:           '┌'
                                                      Shape.VERTICAL:       '┃'}}
 
 class Puzzle:
-    def __init__(self, solutions: list[list[str | None]]) -> None:
-        self.grid   = Grid(solutions)
+    def __init__(self, solutions: list[list[str | None]], clues: list[str]) -> None:
+        self.grid   = Grid(solutions, clues)
         self.cursor = Cursor(self.grid.first_square(Direction.ACROSS), Direction.ACROSS, self.grid)
+        self.clues  = {direction: Clues(direction, self.grid) for direction in Direction}
 
     def run(self) -> None:
         old_attributes = termios.tcgetattr(sys.stdin)
@@ -90,6 +92,12 @@ class Puzzle:
         ansi.move_cursor(0, 0)
         grid_lines, cursor_coords = self.grid.render(self.cursor)
         sys.stdout.write('\r\n'.join(grid_lines))
+        grid_width  = self.grid.width  * 4 + 1
+        grid_height = self.grid.height * 2 + 1
+        for (direction, clues), x_offset, title in zip(self.clues.items(), (2, 36), ('Across', 'Down')):
+            for y, line in enumerate([ansi.bold(title), *clues.render(self.cursor, grid_height - 1)]):
+                ansi.move_cursor(grid_width + x_offset, y)
+                sys.stdout.write(line)
         ansi.move_cursor(*cursor_coords)
         sys.stdout.flush()
 
@@ -120,7 +128,7 @@ class Puzzle:
             self.cursor = self.cursor.toggle_direction()
 
 class Grid:
-    def __init__(self, solutions: list[list[str | None]]) -> None:
+    def __init__(self, solutions: list[list[str | None]], clues: list[str]) -> None:
         self.grid = [[Square(x, y, solution) if solution is not None else None
                       for x, solution in enumerate(row)]
                      for y, row in enumerate(solutions)]
@@ -141,13 +149,15 @@ class Grid:
                 if run:
                     starts[run[0]][direction] = run
 
-        # Assign clue numbers to words
+        # Assign clues to words
+        clue_iterator = iter(clues)
         self.words: dict[Direction, list[Word]] = collections.defaultdict(list)
         for clue_number, start in enumerate(sorted(starts, key=lambda square: (square.y, square.x)), start=1):
             for direction in Direction:
                 squares = starts[start].get(direction)
                 if squares is not None:
-                    word = Word(squares, clue_number)
+                    clue = Clue(clue_number, next(clue_iterator))
+                    word = Word(squares, clue)
                     self.words[direction].append(word)
 
         # Doubly-link words and squares and link squares to words
@@ -182,6 +192,10 @@ class Grid:
 
     def last_square(self, direction: Direction) -> Square:
         return self.words[direction][-1][-1]
+
+    def clues(self, direction: Direction) -> Iterator[Clue]:
+        for word in self.words[direction]:
+            yield word.clue
 
     def render(self, cursor: Cursor) -> tuple[list[str], tuple[int, int]]:
         grid_lines = []
@@ -271,9 +285,9 @@ class Grid:
         return grid_lines, cursor_coords
 
 class Word:
-    def __init__(self, squares: list[Square], clue_number: int) -> None:
-        self.squares     = squares
-        self.clue_number = clue_number
+    def __init__(self, squares: list[Square], clue: Clue) -> None:
+        self.squares = squares
+        self.clue    = clue
         self.prev: Word | None = None
         self.next: Word | None = None
 
@@ -322,7 +336,7 @@ class Square:
             if self.is_start(direction):
                 word = self.word[direction]
                 assert word is not None
-                return word.clue_number
+                return word.clue.number
         return None
 
     def render(self) -> str:
@@ -429,3 +443,35 @@ class Cursor:
 
     def ge(self) -> Cursor:
         return self.jump_to_prev_square(lambda square, direction: square.is_end(direction))
+
+class Clues:
+    def __init__(self, direction: Direction, grid: Grid) -> None:
+        wrap = textwrap.TextWrapper(width=28).wrap
+        self.direction = direction
+        self.prerender = {clue.number: wrap(clue.text) for clue in grid.clues(direction)}
+        start_index = 0
+        self.start_indices = {}
+        for number, clue_lines in self.prerender.items():
+            self.start_indices[number] = start_index
+            start_index += len(clue_lines)
+
+    def render(self, cursor: Cursor, height: int) -> list[str]:
+        lines = []
+        current_clue_number = cursor.square.word[self.direction].clue.number
+        for number, clue_lines in self.prerender.items():
+            for i, clue_line in enumerate(clue_lines):
+                if i == 0:
+                    arrow = '>' if number == current_clue_number else ' '
+                    line = f'{arrow}{number:>2} {clue_line}'
+                else:
+                    line = f'    {clue_line}'
+                if number == current_clue_number and self.direction is cursor.direction:
+                    line = ansi.bold(line)
+                lines.append(line)
+        start_index = min(self.start_indices[current_clue_number], max(len(lines) - height, 0))
+        return lines[start_index:start_index+height]
+
+class Clue:
+    def __init__(self, number: int, text: str) -> None:
+        self.number = number
+        self.text   = text

@@ -23,7 +23,23 @@ class TestMiniPuzzle(unittest.TestCase):
                                   'KIRSTIE',
                                   'ESTREET',
                                   '.MAIDS.']]
-        self.grid = xword.Grid(solutions)
+        clues = ['Competed in the downhill or super-G',
+                 'Painting style of Winslow Homer and Edward Hopper',
+                 'Canadian province that borders Montana',
+                 'Sofa scratcher',
+                 'Put up, as a building',
+                 'Territories for English nobility',
+                 'Country between Ukraine and Lithuania',
+                 'Country star Shelton',
+                 'Unit of fabric or ice',
+                 'Worker in a bio building',
+                 'The "A" of I.P.A.',
+                 'Michael of "S.N.L."',
+                 'Alley who\'s a spokesperson for Jenny Craig',
+                 '___ Lanka',
+                 '___ Band, backers of Bruce Springsteen',
+                 'Hotel cleaners']
+        self.grid = xword.Grid(solutions, clues)
 
     def test_width_and_height(self):
         self.assertEqual(self.grid.width,  7)
@@ -40,13 +56,23 @@ class TestMiniPuzzle(unittest.TestCase):
         with self.assertRaises(IndexError):
             self.grid.get(0, -1)
 
-    def test_square_runs(self):
+    def test_words(self):
         self.assertEqual([''.join(square.solution for square in word)
                           for word in self.grid.words[xword.Direction.ACROSS]],
                          ['RACED', 'BELARUS', 'LABTECH', 'ALE', 'CHE', 'KIRSTIE', 'ESTREET', 'MAIDS'])
         self.assertEqual([''.join(square.solution for square in word)
                           for word in self.grid.words[xword.Direction.DOWN]],
                          ['REALISM', 'ALBERTA', 'CAT', 'ERECTED', 'DUCHIES', 'BLAKE', 'SHEET', 'SRI'])
+
+    def test_clues(self):
+        self.assertEqual([word.clue.number for word in self.grid.words[xword.Direction.ACROSS]],
+                         [1, 6, 8, 9, 10, 11, 13, 14])
+        self.assertEqual([word.clue.number for word in self.grid.words[xword.Direction.DOWN]],
+                         [1, 2, 3, 4, 5, 6, 7, 12])
+        self.assertEqual(self.grid.words[xword.Direction.ACROSS][2].clue.text,
+                         'Worker in a bio building')
+        self.assertEqual(self.grid.words[xword.Direction.DOWN][3].clue.text,
+                         'Put up, as a building')
 
     def test_word_links(self):
         word = self.grid.words[xword.Direction.ACROSS][0]

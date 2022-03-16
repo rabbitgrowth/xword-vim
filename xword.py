@@ -245,7 +245,11 @@ class Grid:
                             clue_number_string = ''
                     else:
                         clue_number_string = ''
-                    horizontal_edge = clue_number_string.ljust(3, horizontal_edge_char)
+                    # Can't just use str.ljust because we might add ANSI escape sequence for bold text
+                    horizontal_edge = horizontal_edge_char * (3 - len(clue_number_string))
+                    if square is cursor.word[0]:
+                        clue_number_string = ansi.bold(clue_number_string)
+                    line += clue_number_string
                     line += horizontal_edge
             grid_lines.append(line)
             if y < self.height:

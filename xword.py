@@ -442,19 +442,27 @@ class Clues:
         wrap = textwrap.TextWrapper(width=32).wrap
         self.prerender = {clue.number: wrap(clue.text) for clue in grid.clues(direction)}
         self.direction = direction
-
-    def render(self, cursor: Cursor) -> Iterator[str]:
+        start_index = 0
+        self.start_indices = {}
         for number, clue_lines in self.prerender.items():
-            is_current = number == cursor.square.word[self.direction].clue.number
+            self.start_indices[number] = start_index
+            start_index += len(clue_lines)
+
+    def render(self, cursor: Cursor, height: int) -> list[str]:
+        lines = []
+        current_clue_number = cursor.square.word[self.direction].clue.number
+        for number, clue_lines in self.prerender.items():
             for i, clue_line in enumerate(clue_lines):
                 if i == 0:
-                    arrow = '>' if is_current else ' '
+                    arrow = '>' if number == current_clue_number else ' '
                     line = f'{arrow}{number:>2} {clue_line}'
                 else:
                     line = f'    {clue_line}'
-                if is_current and self.direction is cursor.direction:
+                if number == current_clue_number and self.direction is cursor.direction:
                     line = ansi.bold(line)
-                yield line
+                lines.append(line)
+        start_index = self.start_indices[current_clue_number]
+        return lines[start_index:start_index+height]
 
 class Clue:
     def __init__(self, number: int, text: str) -> None:

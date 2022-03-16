@@ -3,6 +3,7 @@ from collections.abc import Callable, Iterator
 import collections
 import copy
 import enum
+import itertools
 import sys
 import termios
 import textwrap
@@ -94,8 +95,11 @@ class Puzzle:
         sys.stdout.write('\r\n'.join(grid_lines))
         grid_width  = self.grid.width  * 4 + 1
         grid_height = self.grid.height * 2 + 1
-        for (direction, clues), x in zip(self.clues.items(), (grid_width + 2, grid_width + 36)):
-            for y, line in enumerate(clues.render(self.cursor, grid_height)):
+        for (direction, clues), x, title in zip(self.clues.items(),
+                                                (grid_width + 2, grid_width + 36),
+                                                ('Across', 'Down')):
+            for y, line in enumerate(itertools.chain([ansi.bold(title)],
+                                                     clues.render(self.cursor, grid_height - 1))):
                 ansi.move_cursor(x, y)
                 sys.stdout.write(line)
         ansi.move_cursor(*cursor_coords)

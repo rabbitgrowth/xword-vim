@@ -72,7 +72,7 @@ class Puzzle:
     def __init__(self, solutions: list[list[str | None]], clues: list[str]) -> None:
         self.grid   = Grid(solutions, clues)
         self.cursor = Cursor(self.grid.first_square(Direction.ACROSS), Direction.ACROSS, self.grid)
-        self.clues  = {direction: Clues(self.grid, direction) for direction in Direction}
+        self.clues  = {direction: Clues(direction, self.grid) for direction in Direction}
 
     def run(self) -> None:
         old_attributes = termios.tcgetattr(sys.stdin)
@@ -449,10 +449,10 @@ class Cursor:
         return self.jump_to_prev_square(lambda square, direction: square.is_end(direction))
 
 class Clues:
-    def __init__(self, grid: Grid, direction: Direction) -> None:
+    def __init__(self, direction: Direction, grid: Grid) -> None:
         wrap = textwrap.TextWrapper(width=28).wrap
-        self.prerender = {clue.number: wrap(clue.text) for clue in grid.clues(direction)}
         self.direction = direction
+        self.prerender = {clue.number: wrap(clue.text) for clue in grid.clues(direction)}
         start_index = 0
         self.start_indices = {}
         for number, clue_lines in self.prerender.items():

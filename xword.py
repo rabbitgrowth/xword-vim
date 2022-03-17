@@ -92,11 +92,10 @@ class Puzzle:
         ansi.move_cursor(0, 0)
         grid_lines, cursor_coords = self.grid.render(self.cursor)
         sys.stdout.write('\r\n'.join(grid_lines))
-        grid_width  = self.grid.width  * 4 + 1
-        grid_height = self.grid.height * 2 + 1
         for (direction, clues), x_offset, title in zip(self.clues.items(), (2, 36), ('Across', 'Down')):
-            for y, line in enumerate([ansi.bold(title), *clues.render(self.cursor, grid_height - 1)]):
-                ansi.move_cursor(grid_width + x_offset, y)
+            for y, line in enumerate([ansi.bold(title),
+                                      *clues.render(self.cursor, self.grid.displayed_height - 1)]):
+                ansi.move_cursor(self.grid.displayed_width + x_offset, y)
                 sys.stdout.write(line)
         ansi.move_cursor(*cursor_coords)
         sys.stdout.flush()
@@ -132,8 +131,11 @@ class Grid:
         self.grid = [[Square(x, y, solution) if solution is not None else None
                       for x, solution in enumerate(row)]
                      for y, row in enumerate(solutions)]
-        self.width  = len(self.grid[0])
-        self.height = len(self.grid)
+
+        self.width            = len(self.grid[0])
+        self.height           = len(self.grid)
+        self.displayed_width  = self.width  * 4 + 1
+        self.displayed_height = self.height * 2 + 1
 
         # Map starts of runs of white squares to those runs of white squares
         starts: dict[Square, dict[Direction, list[Square]]] = collections.defaultdict(dict)

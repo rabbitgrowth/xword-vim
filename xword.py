@@ -97,6 +97,7 @@ class Puzzle:
                 term.move_cursor(self.grid.displayed_width + x_offset, y)
                 sys.stdout.write(line)
         term.move_cursor(*cursor_coords)
+        term.show_cursor()
         sys.stdout.flush()
 
     def handle_input(self) -> None:
@@ -132,6 +133,8 @@ class Puzzle:
         term.leave_raw_mode()
         command = input(':')
         term.enter_raw_mode()
+        term.hide_cursor() # prevent cursor from briefly appearing under the colon
+        sys.stdout.flush()
         return command
 
     def handle_command(self, command: str) -> None:

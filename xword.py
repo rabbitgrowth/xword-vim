@@ -90,7 +90,9 @@ class Puzzle:
         term.clear_screen()
         term.move_cursor(0, 0)
         grid_lines, cursor_coords = self.grid.render(self.cursor)
-        sys.stdout.write('\r\n'.join(grid_lines))
+        for y, grid_line in enumerate(grid_lines):
+            term.move_cursor(0, y)
+            sys.stdout.write(grid_line)
         for (direction, clues), x_offset, title in zip(self.clues.items(), (2, 36), ('Across', 'Down')):
             for y, line in enumerate([term.bold(title),
                                       *clues.render(self.cursor, self.grid.displayed_height - 1)]):

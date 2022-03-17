@@ -3,6 +3,7 @@ from collections.abc import Callable, Iterator
 import collections
 import copy
 import enum
+import readline
 import sys
 import termios
 import textwrap
@@ -138,10 +139,8 @@ class Puzzle:
 
     def read_command(self) -> str:
         ansi.move_cursor(0, self.grid.displayed_height + 1)
-        sys.stdout.write(':')
-        sys.stdout.flush()
         self.leave_raw_mode()
-        command = sys.stdin.readline().strip()
+        command = input(':')
         self.enter_raw_mode()
         return command
 

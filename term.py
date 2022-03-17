@@ -1,4 +1,15 @@
 import sys
+import termios
+
+def enter_raw_mode() -> None:
+    attributes = termios.tcgetattr(sys.stdin)
+    attributes[3] &= ~(termios.ECHO | termios.ICANON)
+    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, attributes)
+
+def leave_raw_mode() -> None:
+    attributes = termios.tcgetattr(sys.stdin)
+    attributes[3] |= termios.ECHO | termios.ICANON
+    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, attributes)
 
 def enter_alternate_buffer() -> None:
     sys.stdout.write(f'\x1b[?1049h')

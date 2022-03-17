@@ -74,19 +74,9 @@ class Puzzle:
         self.cursor = Cursor(self.grid.first_square(Direction.ACROSS), Direction.ACROSS, self.grid)
         self.clues  = {direction: Clues(direction, self.grid) for direction in Direction}
 
-    def enter_raw_mode(self) -> None:
-        attributes = termios.tcgetattr(sys.stdin)
-        attributes[3] &= ~(termios.ECHO | termios.ICANON)
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, attributes)
-
-    def leave_raw_mode(self) -> None:
-        attributes = termios.tcgetattr(sys.stdin)
-        attributes[3] |= termios.ECHO | termios.ICANON
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, attributes)
-
     def run(self) -> None:
         old_attributes = termios.tcgetattr(sys.stdin)
-        self.enter_raw_mode()
+        term.enter_raw_mode()
         term.enter_alternate_buffer()
         try:
             while True:
@@ -139,9 +129,9 @@ class Puzzle:
 
     def read_command(self) -> str:
         term.move_cursor(0, self.grid.displayed_height + 1)
-        self.leave_raw_mode()
+        term.leave_raw_mode()
         command = input(':')
-        self.enter_raw_mode()
+        term.enter_raw_mode()
         return command
 
     def handle_command(self, command: str) -> None:

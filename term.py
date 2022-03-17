@@ -29,5 +29,8 @@ def hide_cursor() -> None:
 def show_cursor() -> None:
     sys.stdout.write(f'\x1b[?25h')
 
+def flush() -> None:
+    sys.stdout.flush()
+
 def bold(text: str) -> str:
     return f'\x1b[1m{text}\x1b[0m'

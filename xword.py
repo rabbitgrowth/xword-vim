@@ -3,6 +3,7 @@ from collections.abc import Callable, Iterator
 import collections
 import copy
 import enum
+import readline
 import sys
 import termios
 import textwrap
@@ -73,11 +74,19 @@ class Puzzle:
         self.cursor = Cursor(self.grid.first_square(Direction.ACROSS), Direction.ACROSS, self.grid)
         self.clues  = {direction: Clues(direction, self.grid) for direction in Direction}
 
+    def enter_raw_mode(self) -> None:
+        attributes = termios.tcgetattr(sys.stdin)
+        attributes[3] &= ~(termios.ECHO | termios.ICANON)
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, attributes)
+
+    def leave_raw_mode(self) -> None:
+        attributes = termios.tcgetattr(sys.stdin)
+        attributes[3] |= termios.ECHO | termios.ICANON
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, attributes)
+
     def run(self) -> None:
         old_attributes = termios.tcgetattr(sys.stdin)
-        new_attributes = copy.deepcopy(old_attributes)
-        new_attributes[3] &= ~(termios.ECHO | termios.ICANON) # lflags
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, new_attributes)
+        self.enter_raw_mode()
         ansi.enter_alternate_buffer()
         try:
             while True:
@@ -99,9 +108,6 @@ class Puzzle:
                 sys.stdout.write(line)
         ansi.move_cursor(*cursor_coords)
         sys.stdout.flush()
-
-    def read_char(self) -> str:
-        return sys.stdin.read(1)
 
     def handle_input(self) -> None:
         char = self.read_char()
@@ -125,6 +131,22 @@ class Puzzle:
                 self.cursor = self.cursor.ge()
         elif char == ' ':
             self.cursor = self.cursor.toggle_direction()
+        elif char == ':':
+            self.handle_command(self.read_command())
+
+    def read_char(self) -> str:
+        return sys.stdin.read(1)
+
+    def read_command(self) -> str:
+        ansi.move_cursor(0, self.grid.displayed_height + 1)
+        self.leave_raw_mode()
+        command = input(':')
+        self.enter_raw_mode()
+        return command
+
+    def handle_command(self, command: str) -> None:
+        if command == 'q':
+            sys.exit()
 
 class Grid:
     def __init__(self, solutions: list[list[str | None]], clues: list[str]) -> None:

@@ -313,30 +313,22 @@ class Square:
         self.solution = solution
         self.prev: dict[Direction, Square | None] = dict.fromkeys(Direction)
         self.next: dict[Direction, Square | None] = dict.fromkeys(Direction)
-        self.word: dict[Direction, Word   | None] = dict.fromkeys(Direction)
+        self.word: dict[Direction, Word] = {}
 
     def __iter__(self) -> Iterator[int]:
         yield self.x
         yield self.y
 
     def is_start(self, direction: Direction) -> bool:
-        word = self.word[direction]
-        if word is None:
-            return False
-        return self is word[0]
+        return self is self.word[direction][0]
 
     def is_end(self, direction: Direction) -> bool:
-        word = self.word[direction]
-        if word is None:
-            return False
-        return self is word[-1]
+        return self is self.word[direction][-1]
 
     def clue_number(self) -> int | None:
         for direction in Direction:
             if self.is_start(direction):
-                word = self.word[direction]
-                assert word is not None
-                return word.clue.number
+                return self.word[direction].clue.number
         return None
 
     def render(self) -> str:
@@ -350,9 +342,7 @@ class Cursor:
 
     @property
     def word(self) -> Word:
-        word = self.square.word[self.direction]
-        assert word is not None
-        return word
+        return self.square.word[self.direction]
 
     @property
     def other_direction(self) -> Direction:

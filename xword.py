@@ -9,7 +9,7 @@ import termios
 import textwrap
 import typing
 
-import ansi
+import term
 
 def sign(n: int) -> int:
     return (n > 0) - (n < 0)
@@ -87,26 +87,26 @@ class Puzzle:
     def run(self) -> None:
         old_attributes = termios.tcgetattr(sys.stdin)
         self.enter_raw_mode()
-        ansi.enter_alternate_buffer()
+        term.enter_alternate_buffer()
         try:
             while True:
                 self.render()
                 self.handle_input()
         finally:
-            ansi.leave_alternate_buffer()
+            term.leave_alternate_buffer()
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_attributes)
 
     def render(self) -> None:
-        ansi.clear_screen()
-        ansi.move_cursor(0, 0)
+        term.clear_screen()
+        term.move_cursor(0, 0)
         grid_lines, cursor_coords = self.grid.render(self.cursor)
         sys.stdout.write('\r\n'.join(grid_lines))
         for (direction, clues), x_offset, title in zip(self.clues.items(), (2, 36), ('Across', 'Down')):
-            for y, line in enumerate([ansi.bold(title),
+            for y, line in enumerate([term.bold(title),
                                       *clues.render(self.cursor, self.grid.displayed_height - 1)]):
-                ansi.move_cursor(self.grid.displayed_width + x_offset, y)
+                term.move_cursor(self.grid.displayed_width + x_offset, y)
                 sys.stdout.write(line)
-        ansi.move_cursor(*cursor_coords)
+        term.move_cursor(*cursor_coords)
         sys.stdout.flush()
 
     def handle_input(self) -> None:
@@ -138,7 +138,7 @@ class Puzzle:
         return sys.stdin.read(1)
 
     def read_command(self) -> str:
-        ansi.move_cursor(0, self.grid.displayed_height + 1)
+        term.move_cursor(0, self.grid.displayed_height + 1)
         self.leave_raw_mode()
         command = input(':')
         self.enter_raw_mode()
@@ -283,10 +283,10 @@ class Grid:
                             clue_number_string = ''
                     else:
                         clue_number_string = ''
-                    # Can't just use str.ljust because we might add ANSI escape sequence for bold text
+                    # Can't just use str.ljust because we might add term escape sequence for bold text
                     horizontal_edge = horizontal_edge_char * (3 - len(clue_number_string))
                     if square is cursor.word[0]:
-                        clue_number_string = ansi.bold(clue_number_string)
+                        clue_number_string = term.bold(clue_number_string)
                     line += clue_number_string
                     line += horizontal_edge
             grid_lines.append(line)
@@ -480,7 +480,7 @@ class Clues:
                 else:
                     line = f'    {clue_line}'
                 if number == current_clue_number and self.direction is cursor.direction:
-                    line = ansi.bold(line)
+                    line = term.bold(line)
                 lines.append(line)
         start_index = min(self.start_indices[current_clue_number], max(len(lines) - height, 0))
         return lines[start_index:start_index+height]

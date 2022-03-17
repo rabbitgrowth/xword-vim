@@ -2,7 +2,7 @@ import itertools
 import operator
 import unittest
 
-import ansi
+import term
 import xword
 
 class TestHelpers(unittest.TestCase):
@@ -129,7 +129,7 @@ class TestMiniPuzzle(unittest.TestCase):
         grid_lines, cursor_coords = self.grid.render(cursor)
         self.assertEqual(grid_lines, ['┌───┬1──┬2──┬3──┬4──┬5──┬───┐',
                                       '│░░░│   │   │   │   │   │░░░│',
-                                      '├6──┼───┼───┼───┼───┼───╆7━━┪'.replace('7', ansi.bold('7')),
+                                      '├6──┼───┼───┼───┼───┼───╆7━━┪'.replace('7', term.bold('7')),
                                       '│   │   │   │   │   │   ┃   ┃',
                                       '├8──┼───┼───┼───┼───┼───╂───┨',
                                       '│   │   │   │   │   │   ┃   ┃',

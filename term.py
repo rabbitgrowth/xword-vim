@@ -11,6 +11,12 @@ def leave_raw_mode() -> None:
     attributes[3] |= termios.ECHO | termios.ICANON
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, attributes)
 
+def write(text: str) -> None:
+    sys.stdout.write(text)
+
+def flush() -> None:
+    sys.stdout.flush()
+
 def enter_alternate_buffer() -> None:
     sys.stdout.write(f'\x1b[?1049h')
 
@@ -28,9 +34,6 @@ def hide_cursor() -> None:
 
 def show_cursor() -> None:
     sys.stdout.write(f'\x1b[?25h')
-
-def flush() -> None:
-    sys.stdout.flush()
 
 def bold(text: str) -> str:
     return f'\x1b[1m{text}\x1b[0m'

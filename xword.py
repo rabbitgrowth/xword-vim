@@ -99,15 +99,15 @@ class Puzzle:
         grid_lines, cursor_coords = self.grid.render(self.cursor)
         for y, grid_line in enumerate(grid_lines):
             term.move_cursor(0, y)
-            sys.stdout.write(grid_line)
+            term.write(grid_line)
         for (direction, clues), x_offset, title in zip(self.clues.items(), (2, 36), ('Across', 'Down')):
             for y, line in enumerate([term.bold(title),
                                       *clues.render(self.cursor, self.grid.displayed_height - 1)]):
                 term.move_cursor(self.grid.displayed_width + x_offset, y)
-                sys.stdout.write(line)
+                term.write(line)
         if self.message is not None:
             term.move_cursor(0, self.grid.displayed_height + 1)
-            sys.stdout.write(self.message)
+            term.write(self.message)
         term.move_cursor(*cursor_coords)
         term.show_cursor()
         term.flush()

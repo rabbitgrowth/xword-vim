@@ -141,7 +141,7 @@ class TestMiniPuzzle(unittest.TestCase):
                                                           '├───┼14─┼───┼───┼───┼───╄━━━┩',
                                                           '│░░░│   │   │   │   │   │░░░│',
                                                           '└───┴───┴───┴───┴───┴───┴───┘'])
-        self.assertEqual(cursor.coords(), (26, 7))
+        self.assertEqual(cursor.displayed_coords(), (26, 7))
 
 if __name__ == '__main__':
     unittest.main()

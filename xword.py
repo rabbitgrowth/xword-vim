@@ -107,7 +107,7 @@ class Puzzle:
         if self.message is not None:
             term.move_cursor(0, self.grid.displayed_height + 1)
             term.write(self.message)
-        term.move_cursor(*self.cursor.coords())
+        term.move_cursor(*self.cursor.displayed_coords())
         term.show_cursor()
         term.flush()
 
@@ -499,7 +499,7 @@ class Cursor:
         else:
             return self.jump_to_next_square(lambda square, direction: True)
 
-    def coords(self) -> tuple[int, int]:
+    def displayed_coords(self) -> tuple[int, int]:
         x, y = self.square
         return (2 + x * 4, 1 + y * 2)
 

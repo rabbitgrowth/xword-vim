@@ -38,6 +38,9 @@ def show_cursor() -> None:
 def block_cursor() -> None:
     write(f'\x1b[0 q')
 
+def underline_cursor() -> None:
+    write(f'\x1b[3 q')
+
 def ibeam_cursor() -> None:
     write(f'\x1b[5 q')
 

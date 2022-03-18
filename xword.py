@@ -79,6 +79,7 @@ class Puzzle:
         self.cursor = Cursor(self.grid.first_square(Direction.ACROSS), Direction.ACROSS, self.grid)
         self.clues  = {direction: Clues(direction, self.grid) for direction in Direction}
         self.mode   = Mode.NORMAL
+        self.message: str | None = None
 
     def run(self) -> None:
         old_attributes = termios.tcgetattr(sys.stdin)
@@ -104,6 +105,9 @@ class Puzzle:
                                       *clues.render(self.cursor, self.grid.displayed_height - 1)]):
                 term.move_cursor(self.grid.displayed_width + x_offset, y)
                 sys.stdout.write(line)
+        if self.message is not None:
+            term.move_cursor(0, self.grid.displayed_height + 1)
+            sys.stdout.write(self.message)
         term.move_cursor(*cursor_coords)
         term.show_cursor()
         term.flush()
@@ -159,9 +163,14 @@ class Puzzle:
 
     def enter_insert_mode(self) -> None:
         self.mode = Mode.INSERT
+        self.show_message('-- INSERT --')
 
     def leave_insert_mode(self) -> None:
         self.mode = Mode.NORMAL
+        self.show_message(None)
+
+    def show_message(self, message: str | None) -> None:
+        self.message = message
 
 class Grid:
     def __init__(self, solutions: list[list[str | None]], clues: list[str]) -> None:

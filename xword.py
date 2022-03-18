@@ -142,6 +142,13 @@ class Puzzle:
         elif self.mode is Mode.INSERT:
             if char == '\x1b':
                 self.leave_insert_mode()
+            elif char == 'j':
+                char = self.read_char()
+                if char == 'k':
+                    self.leave_insert_mode()
+                else:
+                    self.cursor = self.cursor.type('j')
+                    self.cursor = self.cursor.type(char)
             else:
                 self.cursor = self.cursor.type(char)
 

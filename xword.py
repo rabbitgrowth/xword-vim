@@ -171,6 +171,7 @@ class Puzzle:
             elif char == '\x7f':
                 self.cursor = self.cursor.backspace()
             elif char == 'j':
+                append(char)
                 next_char = self.read_char()
                 if next_char == 'k':
                     self.leave_insert_mode()

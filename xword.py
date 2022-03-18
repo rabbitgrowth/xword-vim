@@ -425,18 +425,6 @@ class Cursor:
                 dx = sign(dx)
                 dy = sign(dy)
 
-    def h(self) -> Cursor:
-        return self.move(-1, 0)
-
-    def j(self) -> Cursor:
-        return self.move(0, 1)
-
-    def k(self) -> Cursor:
-        return self.move(0, -1)
-
-    def l(self) -> Cursor:
-        return self.move(1, 0)
-
     def next_squares(self) -> Iterator[tuple[Square, Direction]]:
         start = self.square
         square = start.next[self.direction]
@@ -469,29 +457,41 @@ class Cursor:
             yield square, self.direction
             square = square.prev[self.direction]
 
-    def jump_to_next_square(self, condition: Callable[[Square, Direction], bool]) -> Cursor:
+    def move_to_next_square(self, condition: Callable[[Square, Direction], bool] | None = None) -> Cursor:
         for square, direction in self.next_squares():
-            if condition(square, direction):
+            if condition is None or condition(square, direction):
                 return Cursor(square, direction, self.grid)
         return self
 
-    def jump_to_prev_square(self, condition: Callable[[Square, Direction], bool]) -> Cursor:
+    def move_to_prev_square(self, condition: Callable[[Square, Direction], bool] | None = None) -> Cursor:
         for square, direction in self.prev_squares():
-            if condition(square, direction):
+            if condition is None or condition(square, direction):
                 return Cursor(square, direction, self.grid)
         return self
+
+    def h(self) -> Cursor:
+        return self.move(-1, 0)
+
+    def j(self) -> Cursor:
+        return self.move(0, 1)
+
+    def k(self) -> Cursor:
+        return self.move(0, -1)
+
+    def l(self) -> Cursor:
+        return self.move(1, 0)
 
     def w(self) -> Cursor:
-        return self.jump_to_next_square(lambda square, direction: square.is_start(direction))
+        return self.move_to_next_square(lambda square, direction: square.is_start(direction))
 
     def b(self) -> Cursor:
-        return self.jump_to_prev_square(lambda square, direction: square.is_start(direction))
+        return self.move_to_prev_square(lambda square, direction: square.is_start(direction))
 
     def e(self) -> Cursor:
-        return self.jump_to_next_square(lambda square, direction: square.is_end(direction))
+        return self.move_to_next_square(lambda square, direction: square.is_end(direction))
 
     def ge(self) -> Cursor:
-        return self.jump_to_prev_square(lambda square, direction: square.is_end(direction))
+        return self.move_to_prev_square(lambda square, direction: square.is_end(direction))
 
     def type(self, char) -> Cursor:
         try:
@@ -499,7 +499,7 @@ class Cursor:
         except ValueError:
             return self
         else:
-            return self.jump_to_next_square(lambda square, direction: True)
+            return self.move_to_next_square()
 
     def displayed_coords(self) -> tuple[int, int]:
         x, y = self.square

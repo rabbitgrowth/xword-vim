@@ -132,8 +132,8 @@ class Puzzle:
             elif char == 'e':
                 self.cursor = self.cursor.e()
             elif char == 'g':
-                char = self.read_char()
-                if char == 'e':
+                next_char = self.read_char()
+                if next_char == 'e':
                     self.cursor = self.cursor.ge()
             elif char == ' ':
                 self.cursor = self.cursor.toggle_direction()
@@ -143,12 +143,12 @@ class Puzzle:
             if char == '\x1b':
                 self.leave_insert_mode()
             elif char == 'j':
-                char = self.read_char()
-                if char == 'k':
+                next_char = self.read_char()
+                if next_char == 'k':
                     self.leave_insert_mode()
                 else:
-                    self.cursor = self.cursor.type('j')
                     self.cursor = self.cursor.type(char)
+                    self.cursor = self.cursor.type(next_char)
             else:
                 self.cursor = self.cursor.type(char)
 

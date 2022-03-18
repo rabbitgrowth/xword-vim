@@ -96,10 +96,9 @@ class Puzzle:
     def render(self) -> None:
         term.clear_screen()
         term.move_cursor(0, 0)
-        grid_lines, cursor_coords = self.grid.render(self.cursor)
-        for y, grid_line in enumerate(grid_lines):
+        for y, line in enumerate(self.grid.render(self.cursor)):
             term.move_cursor(0, y)
-            term.write(grid_line)
+            term.write(line)
         for (direction, clues), x_offset, title in zip(self.clues.items(), (2, 36), ('Across', 'Down')):
             for y, line in enumerate([term.bold(title),
                                       *clues.render(self.cursor, self.grid.displayed_height - 1)]):
@@ -108,7 +107,7 @@ class Puzzle:
         if self.message is not None:
             term.move_cursor(0, self.grid.displayed_height + 1)
             term.write(self.message)
-        term.move_cursor(*cursor_coords)
+        term.move_cursor(*self.cursor.coords())
         term.show_cursor()
         term.flush()
 
@@ -252,9 +251,8 @@ class Grid:
         for word in self.words[direction]:
             yield word.clue
 
-    def render(self, cursor: Cursor) -> tuple[list[str], tuple[int, int]]:
-        grid_lines = []
-        boldness   = {}
+    def render(self, cursor: Cursor) -> Iterator[str]:
+        boldness = {}
         x, y = cursor.word[0]
         if cursor.direction == Direction.ACROSS:
             boldness[(x, y    )] = Shape.DOWN_AND_RIGHT
@@ -320,7 +318,7 @@ class Grid:
                         clue_number_string = term.bold(clue_number_string)
                     line += clue_number_string
                     line += horizontal_edge
-            grid_lines.append(line)
+            yield line
             if y < self.height:
                 line = ''
                 for x in range(self.width + 1):
@@ -334,10 +332,7 @@ class Grid:
                     if x < self.width:
                         square = self.get(x, y)
                         line += '░░░' if square is None else square.render()
-                grid_lines.append(line)
-        x, y = cursor.square
-        cursor_coords = (2 + x * 4, 1 + y * 2)
-        return grid_lines, cursor_coords
+                yield line
 
 class Word:
     def __init__(self, squares: list[Square], clue: Clue) -> None:
@@ -503,6 +498,10 @@ class Cursor:
             return self
         else:
             return self.jump_to_next_square(lambda square, direction: True)
+
+    def coords(self) -> tuple[int, int]:
+        x, y = self.square
+        return (2 + x * 4, 1 + y * 2)
 
 class Clues:
     def __init__(self, direction: Direction, grid: Grid) -> None:

@@ -134,6 +134,8 @@ class Puzzle:
                 next_char = self.read_char()
                 if next_char == 'e':
                     self.cursor = self.cursor.ge()
+            elif char == 'x':
+                self.cursor.delete()
             elif char == ' ':
                 self.cursor = self.cursor.toggle_direction()
             elif char == ':':
@@ -141,6 +143,8 @@ class Puzzle:
         elif self.mode is Mode.INSERT:
             if char == '\x1b':
                 self.leave_insert_mode()
+            elif char == '\x7f':
+                self.cursor = self.cursor.backspace()
             elif char == 'j':
                 next_char = self.read_char()
                 if next_char == 'k':
@@ -384,10 +388,13 @@ class Square:
                 return self.word[direction].clue.number
         return None
 
-    def set(self, char: str) -> None:
-        if not char.isalnum():
+    def set(self, char: str | None) -> None:
+        if char is None:
+            self.guess = None
+        elif char.isalnum():
+            self.guess = char.upper()
+        else:
             raise ValueError
-        self.guess = char.upper()
 
     def render(self) -> str:
         guess = self.guess if self.guess is not None else ' '
@@ -500,6 +507,14 @@ class Cursor:
             return self
         else:
             return self.move_to_next_square()
+
+    def delete(self) -> None:
+        self.square.set(None)
+
+    def backspace(self) -> Cursor:
+        cursor = self.move_to_prev_square()
+        cursor.delete()
+        return cursor
 
     def displayed_coords(self) -> tuple[int, int]:
         x, y = self.square

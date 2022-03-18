@@ -4,6 +4,7 @@ import collections
 import copy
 import enum
 import readline
+import string
 import sys
 import termios
 import textwrap
@@ -17,6 +18,10 @@ def sign(n: int) -> int:
 class Direction(enum.Enum):
     ACROSS = enum.auto()
     DOWN   = enum.auto()
+
+class Mode(enum.Enum):
+    NORMAL = enum.auto()
+    INSERT = enum.auto()
 
 class Shape(enum.Enum):
     DOWN_AND_RIGHT          = enum.auto()
@@ -73,6 +78,8 @@ class Puzzle:
         self.grid   = Grid(solutions, clues)
         self.cursor = Cursor(self.grid.first_square(Direction.ACROSS), Direction.ACROSS, self.grid)
         self.clues  = {direction: Clues(direction, self.grid) for direction in Direction}
+        self.mode   = Mode.NORMAL
+        self.message: str | None = None
 
     def run(self) -> None:
         old_attributes = termios.tcgetattr(sys.stdin)
@@ -98,34 +105,52 @@ class Puzzle:
                                       *clues.render(self.cursor, self.grid.displayed_height - 1)]):
                 term.move_cursor(self.grid.displayed_width + x_offset, y)
                 sys.stdout.write(line)
+        if self.message is not None:
+            term.move_cursor(0, self.grid.displayed_height + 1)
+            sys.stdout.write(self.message)
         term.move_cursor(*cursor_coords)
         term.show_cursor()
         term.flush()
 
     def handle_input(self) -> None:
         char = self.read_char()
-        if char == 'h':
-            self.cursor = self.cursor.h()
-        elif char == 'j':
-            self.cursor = self.cursor.j()
-        elif char == 'k':
-            self.cursor = self.cursor.k()
-        elif char == 'l':
-            self.cursor = self.cursor.l()
-        elif char == 'w':
-            self.cursor = self.cursor.w()
-        elif char == 'b':
-            self.cursor = self.cursor.b()
-        elif char == 'e':
-            self.cursor = self.cursor.e()
-        elif char == 'g':
-            char = self.read_char()
-            if char == 'e':
-                self.cursor = self.cursor.ge()
-        elif char == ' ':
-            self.cursor = self.cursor.toggle_direction()
-        elif char == ':':
-            self.handle_command(self.read_command())
+        if self.mode is Mode.NORMAL:
+            if char == 'i':
+                self.enter_insert_mode()
+            elif char == 'h':
+                self.cursor = self.cursor.h()
+            elif char == 'j':
+                self.cursor = self.cursor.j()
+            elif char == 'k':
+                self.cursor = self.cursor.k()
+            elif char == 'l':
+                self.cursor = self.cursor.l()
+            elif char == 'w':
+                self.cursor = self.cursor.w()
+            elif char == 'b':
+                self.cursor = self.cursor.b()
+            elif char == 'e':
+                self.cursor = self.cursor.e()
+            elif char == 'g':
+                next_char = self.read_char()
+                if next_char == 'e':
+                    self.cursor = self.cursor.ge()
+            elif char == ' ':
+                self.cursor = self.cursor.toggle_direction()
+            elif char == ':':
+                self.handle_command(self.read_command())
+        elif self.mode is Mode.INSERT:
+            if char == '\x1b':
+                self.leave_insert_mode()
+            elif char == 'j':
+                next_char = self.read_char()
+                if next_char == 'k':
+                    self.leave_insert_mode()
+                else:
+                    self.cursor = self.cursor.type(char)
+                    self.cursor = self.cursor.type(next_char)
+            else:
+                self.cursor = self.cursor.type(char)
 
     def read_char(self) -> str:
         return sys.stdin.read(1)
@@ -143,9 +168,20 @@ class Puzzle:
         if command == 'q':
             sys.exit()
 
+    def enter_insert_mode(self) -> None:
+        self.mode = Mode.INSERT
+        self.show_message('-- INSERT --')
+
+    def leave_insert_mode(self) -> None:
+        self.mode = Mode.NORMAL
+        self.show_message(None)
+
+    def show_message(self, message: str | None) -> None:
+        self.message = message
+
 class Grid:
     def __init__(self, solutions: list[list[str | None]], clues: list[str]) -> None:
-        self.grid = [[Square(x, y, solution) if solution is not None else None
+        self.grid = [[Square(x, y, solution, None) if solution is not None else None
                       for x, solution in enumerate(row)]
                      for y, row in enumerate(solutions)]
 
@@ -326,10 +362,11 @@ class Word:
         yield from self.squares
 
 class Square:
-    def __init__(self, x: int, y: int, solution: str) -> None:
-        self.x = x
-        self.y = y
+    def __init__(self, x: int, y: int, solution: str, guess: str | None) -> None:
+        self.x        = x
+        self.y        = y
         self.solution = solution
+        self.guess    = guess
         self.prev: dict[Direction, Square | None] = dict.fromkeys(Direction)
         self.next: dict[Direction, Square | None] = dict.fromkeys(Direction)
         self.word: dict[Direction, Word] = {}
@@ -350,8 +387,14 @@ class Square:
                 return self.word[direction].clue.number
         return None
 
+    def set(self, char: str) -> None:
+        if not char.isalnum():
+            raise ValueError
+        self.guess = char.upper()
+
     def render(self) -> str:
-        return f'   ' # TODO: hard-code to be blank for now
+        guess = self.guess if self.guess is not None else ' '
+        return f' {guess} '
 
 class Cursor:
     def __init__(self, square: Square, direction: Direction, grid: Grid) -> None:
@@ -452,6 +495,14 @@ class Cursor:
 
     def ge(self) -> Cursor:
         return self.jump_to_prev_square(lambda square, direction: square.is_end(direction))
+
+    def type(self, char) -> Cursor:
+        try:
+            self.square.set(char)
+        except ValueError:
+            return self
+        else:
+            return self.jump_to_next_square(lambda square, direction: True)
 
 class Clues:
     def __init__(self, direction: Direction, grid: Grid) -> None:

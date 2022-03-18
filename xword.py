@@ -170,10 +170,12 @@ class Puzzle:
     def enter_insert_mode(self) -> None:
         self.mode = Mode.INSERT
         self.show_message('-- INSERT --')
+        term.ibeam_cursor()
 
     def leave_insert_mode(self) -> None:
         self.mode = Mode.NORMAL
         self.show_message(None)
+        term.block_cursor()
 
     def show_message(self, message: str | None) -> None:
         self.message = message

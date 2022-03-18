@@ -35,5 +35,11 @@ def hide_cursor() -> None:
 def show_cursor() -> None:
     write(f'\x1b[?25h')
 
+def block_cursor() -> None:
+    write(f'\x1b[0 q')
+
+def ibeam_cursor() -> None:
+    write(f'\x1b[5 q')
+
 def bold(text: str) -> str:
     return f'\x1b[1m{text}\x1b[0m'

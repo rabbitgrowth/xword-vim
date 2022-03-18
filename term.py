@@ -18,22 +18,22 @@ def flush() -> None:
     sys.stdout.flush()
 
 def enter_alternate_buffer() -> None:
-    sys.stdout.write(f'\x1b[?1049h')
+    write(f'\x1b[?1049h')
 
 def leave_alternate_buffer() -> None:
-    sys.stdout.write(f'\x1b[?1049l')
+    write(f'\x1b[?1049l')
 
 def clear_screen() -> None:
-    sys.stdout.write(f'\x1b[2J')
+    write(f'\x1b[2J')
 
 def move_cursor(x: int, y: int) -> None:
-    sys.stdout.write(f'\x1b[{y+1};{x+1}H')
+    write(f'\x1b[{y+1};{x+1}H')
 
 def hide_cursor() -> None:
-    sys.stdout.write(f'\x1b[?25l')
+    write(f'\x1b[?25l')
 
 def show_cursor() -> None:
-    sys.stdout.write(f'\x1b[?25h')
+    write(f'\x1b[?25h')
 
 def bold(text: str) -> str:
     return f'\x1b[1m{text}\x1b[0m'

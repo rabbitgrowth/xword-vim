@@ -111,8 +111,25 @@ class Puzzle:
         term.show_cursor()
         term.flush()
 
+    def show_command(self, chars: list[str]) -> None:
+        term.save_cursor()
+        term.move_cursor(self.grid.displayed_width + 60, self.grid.displayed_height + 1)
+        term.write(''.join(chars[-8:]))
+        term.restore_cursor()
+        term.flush()
+
     def handle_input(self) -> None:
-        char = self.read_char()
+        chars = []
+        def append(char):
+            chars.append(char)
+            self.show_command(chars)
+        while True:
+            char = self.read_char()
+            if char.isdigit():
+                append(char)
+            else:
+                break
+        count = int(''.join(chars)) if chars else 0
         if self.mode is Mode.NORMAL:
             if char == 'i':
                 self.enter_insert_mode()
@@ -131,10 +148,12 @@ class Puzzle:
             elif char == 'e':
                 self.cursor = self.cursor.e()
             elif char == 'g':
+                append(char)
                 next_char = self.read_char()
                 if next_char == 'e':
                     self.cursor = self.cursor.ge()
             elif char == 'r':
+                append(char)
                 term.underline_cursor()
                 term.flush()
                 next_char = self.read_char()

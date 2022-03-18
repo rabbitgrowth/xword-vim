@@ -35,6 +35,12 @@ def hide_cursor() -> None:
 def show_cursor() -> None:
     write('\x1b[?25h')
 
+def save_cursor() -> None:
+    write('\x1b7')
+
+def restore_cursor() -> None:
+    write('\x1b8')
+
 def block_cursor() -> None:
     write('\x1b[0 q')
 

@@ -2,8 +2,8 @@
 
 ![Screenshot](screenshot.png)
 
-xword-vim is a terminal interface with Vim-like keybindings for solving
-crossword puzzles.
+xword-vim is a terminal interface for solving crossword puzzles with
+Vim-like keybindings.
 
 It is a work in progress.
 

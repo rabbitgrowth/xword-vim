@@ -151,7 +151,11 @@ class Puzzle:
                 if next_char == 'e':
                     self.cursor = self.cursor.ge()
             elif char == 'r':
-                self.cursor = self.cursor.r()
+                term.underline_cursor()
+                term.flush()
+                next_char = term.read_char()
+                self.cursor = self.cursor.r(next_char)
+                term.block_cursor()
             elif char == 'x':
                 self.cursor = self.cursor.x()
             elif char == 'G':
@@ -530,15 +534,11 @@ class Cursor:
     def ge(self) -> Cursor:
         return self.move_to_prev_square(lambda square, direction: square.is_end(direction))
 
-    def r(self) -> Cursor:
-        term.underline_cursor()
-        term.flush()
-        char = term.read_char()
+    def r(self, char: str) -> Cursor:
         try:
             self.square.set(char)
         except ValueError:
             pass
-        term.block_cursor()
         return self
 
     def x(self) -> Cursor:

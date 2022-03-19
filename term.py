@@ -29,6 +29,9 @@ def leave_alternate_buffer() -> None:
 def clear_screen() -> None:
     write('\x1b[2J')
 
+def clear_rest_of_line() -> None:
+    write(f'\x1b[K')
+
 def move_cursor(x: int, y: int) -> None:
     write(f'\x1b[{y+1};{x+1}H')
 

@@ -188,7 +188,9 @@ class Puzzle:
                 self.cursor = self.cursor.type(char)
 
     def read_command(self) -> str:
+        self.message = None
         term.move_cursor(0, self.grid.displayed_height + 1)
+        term.clear_rest_of_line()
         term.leave_raw_mode()
         command = input(':')
         term.enter_raw_mode()

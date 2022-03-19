@@ -113,7 +113,21 @@ class Puzzle:
         term.flush()
 
     def handle_input(self) -> None:
-        char = term.read_char()
+        chars = []
+        def append(char):
+            chars.append(char)
+            term.save_cursor()
+            term.move_cursor(self.grid.displayed_width + 60, self.grid.displayed_height + 1)
+            term.write(''.join(chars[-8:]))
+            term.restore_cursor()
+            term.flush()
+        while True:
+            char = term.read_char()
+            if char.isdigit() and not (char == '0' and not chars):
+                append(char)
+            else:
+                break
+        count = int(''.join(chars)) if chars else 1
         if self.mode is Mode.NORMAL:
             if char == 'i':
                 self.enter_insert_mode()
@@ -132,6 +146,7 @@ class Puzzle:
             elif char == 'e':
                 self.cursor = self.cursor.e()
             elif char == 'g':
+                append(char)
                 next_char = term.read_char()
                 if next_char == 'e':
                     self.cursor = self.cursor.ge()
@@ -139,6 +154,8 @@ class Puzzle:
                 self.cursor.r()
             elif char == 'x':
                 self.cursor.x()
+            elif char == 'G':
+                self.cursor = self.cursor.G(count)
             elif char == ' ':
                 self.cursor = self.cursor.toggle_direction()
             elif char == ':':
@@ -149,6 +166,7 @@ class Puzzle:
             elif char == '\x7f':
                 self.cursor = self.cursor.backspace()
             elif char == 'j':
+                append(char)
                 next_char = term.read_char()
                 if next_char == 'k':
                     self.leave_insert_mode()
@@ -246,6 +264,13 @@ class Grid:
         if not self.within_bounds(x, y):
             raise IndexError
         return self.grid[y][x]
+
+    @property
+    def squares(self) -> Iterator[Square]:
+        for row in self.grid:
+            for square in row:
+                if square is not None:
+                    yield square
 
     def first_square(self, direction: Direction) -> Square:
         return self.words[direction][0][0]
@@ -512,6 +537,12 @@ class Cursor:
 
     def x(self) -> None:
         self.square.set(None)
+
+    def G(self, count: int) -> Cursor:
+        for square in self.grid.squares:
+            if square.clue_number() == count:
+                return Cursor(square, self.direction, self.grid)
+        return self
 
     def type(self, char) -> Cursor:
         try:

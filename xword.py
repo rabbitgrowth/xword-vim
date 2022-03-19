@@ -125,7 +125,7 @@ class Puzzle:
             self.show_command(chars)
         while True:
             char = self.read_char()
-            if char.isdigit():
+            if char.isdigit() and not (char == '0' and not chars):
                 append(char)
             else:
                 break

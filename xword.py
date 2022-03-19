@@ -111,18 +111,15 @@ class Puzzle:
         term.show_cursor()
         term.flush()
 
-    def show_command(self, chars: list[str]) -> None:
-        term.save_cursor()
-        term.move_cursor(self.grid.displayed_width + 60, self.grid.displayed_height + 1)
-        term.write(''.join(chars[-8:]))
-        term.restore_cursor()
-        term.flush()
-
     def handle_input(self) -> None:
         chars = []
         def append(char):
             chars.append(char)
-            self.show_command(chars)
+            term.save_cursor()
+            term.move_cursor(self.grid.displayed_width + 60, self.grid.displayed_height + 1)
+            term.write(''.join(chars[-8:]))
+            term.restore_cursor()
+            term.flush()
         while True:
             char = self.read_char()
             if char.isdigit() and not (char == '0' and not chars):

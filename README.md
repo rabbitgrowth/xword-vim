@@ -33,3 +33,43 @@ To actually type letters into the puzzle, press `i` to enter *insert
 mode*. The cursor turns into an I-beam, and you can type as normal,
 using `<Backspace>` to delete mistakes. To leave insert mode and go back
 to normal mode, press `<Esc>` or `jk`.
+
+## Todo
+
+In descending order of priority:
+
+- Parse .puz files
+- Warn if screen is not big enough
+- Exit gracefully on interrupt
+- Pencil mode
+- Check answers with `:check`
+- Reveal answers
+- Colours
+- Save with `:w`
+- More commands
+    - `H` `M` `L`
+    - `f` `F` `t` `T` `;` `,`
+    - `/` `?` `n` `N` (`*` `#` should be pretty useless for crosswords)
+    - `incsearch`?
+    - `a` to enter insert mode at the next blank square
+    - `cw` (`ciw`?)
+    - `dw` (`diw`?) to delete word, leaving untouched squares that
+      belong to a completely filled word in the other direction?
+    - `de` `db` `dae`? `d` with any motion??
+    - `}` `{` to jump to blank squares and `]]` `[[` to jump to filled
+      squares?
+    - `]<some letter>` `[<some letter>` to jump to squares marked wrong
+    - `u` and `U` or `<C-R>` to undo and redo
+    - `<C-O>` `<C-I>`
+    - `gi`
+- Count with `h` `j` `k` `l` etc.
+- Circled squares
+- Rebuses and how on earth to display them
+- Config (`.xwordvimrc`?)
+    - `set startofline`
+    - `inoremap jj <Esc>`
+- Marks?
+- Edge cases (grid with no white squares?)
+- Highlight cross references between clues?
+- Visual mode?
+- Timer?

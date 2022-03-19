@@ -5,6 +5,7 @@ import copy
 import enum
 import readline
 import string
+import struct
 import sys
 import termios
 import textwrap
@@ -645,3 +646,24 @@ class Clue:
     def __init__(self, number: int, text: str) -> None:
         self.number = number
         self.text   = text
+
+def parse(file):
+    f.seek(0x2c) # skip checksums, file magic, etc.
+    width, height, nclues = struct.unpack('<BBH', f.read(4))
+    f.seek(4, 1) # skip unknown bitmask and scrambled tag
+    solutions = [[None if char == '.' else char
+                  for char in f.read(width).decode('iso-8859-1')]
+                 for _ in range(height)]
+    f.seek(width * height, 1) # skip guesses
+    strings = f.read().decode('iso-8859-1').rstrip('\0').split('\0')
+    print(strings)
+    # skip title, author, and copyright information
+    clues = strings[3:3+nclues]
+    # skip notes
+    assert len(clues) == nclues
+    return solutions, clues
+
+if __name__ == '__main__':
+    with open(sys.argv[1], 'rb') as f:
+        solutions, clues = parse(f)
+        Puzzle(solutions, clues).run()

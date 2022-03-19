@@ -265,22 +265,25 @@ class Grid:
             raise IndexError
         return self.grid[y][x]
 
-    @property
-    def squares(self) -> Iterator[Square]:
+    def itersquares(self) -> Iterator[Square]:
         for row in self.grid:
             for square in row:
                 if square is not None:
                     yield square
+
+    def iterwords(self, direction: Direction) -> Iterator[Word]:
+        for word in self.words[direction]:
+            yield word
+
+    def iterclues(self, direction: Direction) -> Iterator[Clue]:
+        for word in self.iterwords(direction):
+            yield word.clue
 
     def first_square(self, direction: Direction) -> Square:
         return self.words[direction][0][0]
 
     def last_square(self, direction: Direction) -> Square:
         return self.words[direction][-1][-1]
-
-    def clues(self, direction: Direction) -> Iterator[Clue]:
-        for word in self.words[direction]:
-            yield word.clue
 
     def render(self, cursor: Cursor) -> Iterator[str]:
         boldness = {}
@@ -539,7 +542,7 @@ class Cursor:
         self.square.set(None)
 
     def G(self, count: int) -> Cursor:
-        for square in self.grid.squares:
+        for square in self.grid.itersquares():
             if square.clue_number() == count:
                 return Cursor(square, self.direction, self.grid)
         return self
@@ -565,7 +568,7 @@ class Clues:
     def __init__(self, direction: Direction, grid: Grid) -> None:
         wrap = textwrap.TextWrapper(width=28).wrap
         self.direction = direction
-        self.prerender = {clue.number: wrap(clue.text) for clue in grid.clues(direction)}
+        self.prerender = {clue.number: wrap(clue.text) for clue in grid.iterclues(direction)}
         start_index = 0
         self.start_indices = {}
         for number, clue_lines in self.prerender.items():

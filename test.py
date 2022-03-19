@@ -58,24 +58,36 @@ class TestMiniPuzzle(unittest.TestCase):
 
     def test_words(self):
         self.assertEqual([''.join(square.solution for square in word)
-                          for word in self.grid.words[xword.Direction.ACROSS]],
+                          for word in self.grid.iterwords(xword.Direction.ACROSS)],
                          ['RACED', 'BELARUS', 'LABTECH', 'ALE', 'CHE', 'KIRSTIE', 'ESTREET', 'MAIDS'])
         self.assertEqual([''.join(square.solution for square in word)
-                          for word in self.grid.words[xword.Direction.DOWN]],
+                          for word in self.grid.iterwords(xword.Direction.DOWN)],
                          ['REALISM', 'ALBERTA', 'CAT', 'ERECTED', 'DUCHIES', 'BLAKE', 'SHEET', 'SRI'])
 
     def test_clues(self):
-        self.assertEqual([word.clue.number for word in self.grid.words[xword.Direction.ACROSS]],
-                         [1, 6, 8, 9, 10, 11, 13, 14])
-        self.assertEqual([word.clue.number for word in self.grid.words[xword.Direction.DOWN]],
-                         [1, 2, 3, 4, 5, 6, 7, 12])
-        self.assertEqual(self.grid.words[xword.Direction.ACROSS][2].clue.text,
-                         'Worker in a bio building')
-        self.assertEqual(self.grid.words[xword.Direction.DOWN][3].clue.text,
-                         'Put up, as a building')
+        self.assertEqual([(word.clue.number, word.clue.text)
+                          for word in self.grid.iterwords(xword.Direction.ACROSS)],
+                         [(1,  'Competed in the downhill or super-G'),
+                          (6,  'Country between Ukraine and Lithuania'),
+                          (8,  'Worker in a bio building'),
+                          (9,  'The "A" of I.P.A.'),
+                          (10, 'Michael of "S.N.L."'),
+                          (11, 'Alley who\'s a spokesperson for Jenny Craig'),
+                          (13, '___ Band, backers of Bruce Springsteen'),
+                          (14, 'Hotel cleaners')])
+        self.assertEqual([(word.clue.number, word.clue.text)
+                          for word in self.grid.iterwords(xword.Direction.DOWN)],
+                         [(1,  'Painting style of Winslow Homer and Edward Hopper'),
+                          (2,  'Canadian province that borders Montana'),
+                          (3,  'Sofa scratcher'),
+                          (4,  'Put up, as a building'),
+                          (5,  'Territories for English nobility'),
+                          (6,  'Country star Shelton'),
+                          (7,  'Unit of fabric or ice'),
+                          (12, '___ Lanka')])
 
     def test_word_links(self):
-        word = self.grid.words[xword.Direction.ACROSS][0]
+        word = next(self.grid.iterwords(xword.Direction.ACROSS))
         self.assertIsNone(word.prev)
         self.assertIs(word.next.prev, word)
         self.assertEqual(''.join(square.solution for square in word.next), 'BELARUS')

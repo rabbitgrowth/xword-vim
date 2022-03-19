@@ -91,6 +91,7 @@ class Puzzle:
                 self.handle_input()
         finally:
             term.leave_alternate_buffer()
+            term.show_cursor()
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_attributes)
 
     def render(self) -> None:
@@ -121,7 +122,7 @@ class Puzzle:
             term.restore_cursor()
             term.flush()
         while True:
-            char = self.read_char()
+            char = term.read_char()
             if char.isdigit() and not (char == '0' and not chars):
                 append(char)
             else:
@@ -146,18 +147,13 @@ class Puzzle:
                 self.cursor = self.cursor.e()
             elif char == 'g':
                 append(char)
-                next_char = self.read_char()
+                next_char = term.read_char()
                 if next_char == 'e':
                     self.cursor = self.cursor.ge()
             elif char == 'r':
-                append(char)
-                term.underline_cursor()
-                term.flush()
-                next_char = self.read_char()
-                self.cursor.replace(next_char)
-                term.block_cursor()
+                self.cursor.r()
             elif char == 'x':
-                self.cursor.delete()
+                self.cursor.x()
             elif char == ' ':
                 self.cursor = self.cursor.toggle_direction()
             elif char == ':':
@@ -169,7 +165,7 @@ class Puzzle:
                 self.cursor = self.cursor.backspace()
             elif char == 'j':
                 append(char)
-                next_char = self.read_char()
+                next_char = term.read_char()
                 if next_char == 'k':
                     self.leave_insert_mode()
                 else:
@@ -177,9 +173,6 @@ class Puzzle:
                     self.cursor = self.cursor.type(next_char)
             else:
                 self.cursor = self.cursor.type(char)
-
-    def read_char(self) -> str:
-        return sys.stdin.read(1)
 
     def read_command(self) -> str:
         term.move_cursor(0, self.grid.displayed_height + 1)
@@ -523,13 +516,17 @@ class Cursor:
     def ge(self) -> Cursor:
         return self.move_to_prev_square(lambda square, direction: square.is_end(direction))
 
-    def replace(self, char) -> None:
+    def r(self) -> None:
+        term.underline_cursor()
+        term.flush()
+        char = term.read_char()
         try:
             self.square.set(char)
         except ValueError:
             pass
+        term.block_cursor()
 
-    def delete(self) -> None:
+    def x(self) -> None:
         self.square.set(None)
 
     def type(self, char) -> Cursor:
@@ -542,7 +539,7 @@ class Cursor:
 
     def backspace(self) -> Cursor:
         cursor = self.move_to_prev_square()
-        cursor.delete()
+        cursor.square.set(None)
         return cursor
 
     def displayed_coords(self) -> tuple[int, int]:

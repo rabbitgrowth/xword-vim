@@ -551,7 +551,7 @@ class Cursor:
                 return Cursor(square, self.direction, self.grid)
         return self
 
-    def type(self, char) -> Cursor:
+    def type(self, char: str) -> Cursor:
         try:
             self.square.set(char)
         except ValueError:

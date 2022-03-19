@@ -129,7 +129,7 @@ class Puzzle:
                 append(char)
             else:
                 break
-        count = int(''.join(chars)) if chars else 0
+        count = int(''.join(chars)) if chars else 1
         if self.mode is Mode.NORMAL:
             if char == 'i':
                 self.enter_insert_mode()

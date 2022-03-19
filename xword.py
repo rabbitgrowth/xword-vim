@@ -127,7 +127,7 @@ class Puzzle:
                 append(char)
             else:
                 break
-        count = int(''.join(chars)) if chars else 1
+        count = int(''.join(chars)) if chars else None # distinguish between G and 1G
         if self.mode is Mode.NORMAL:
             if char == 'i':
                 self.enter_insert_mode()
@@ -139,17 +139,25 @@ class Puzzle:
                 self.cursor = self.cursor.k()
             elif char == 'l':
                 self.cursor = self.cursor.l()
+            elif char == 'g':
+                append(char)
+                next_char = term.read_char()
+                if next_char == 'e':
+                    self.cursor = self.cursor.ge()
+                elif next_char == 'g':
+                    self.cursor = self.cursor.gg()
+            elif char == 'G':
+                self.cursor = self.cursor.G(count)
+            elif char == '0':
+                self.cursor = self.cursor.zero()
+            elif char == '$':
+                self.cursor = self.cursor.dollar()
             elif char == 'w':
                 self.cursor = self.cursor.w()
             elif char == 'b':
                 self.cursor = self.cursor.b()
             elif char == 'e':
                 self.cursor = self.cursor.e()
-            elif char == 'g':
-                append(char)
-                next_char = term.read_char()
-                if next_char == 'e':
-                    self.cursor = self.cursor.ge()
             elif char == 'r':
                 term.underline_cursor()
                 term.flush()
@@ -158,8 +166,6 @@ class Puzzle:
                 term.block_cursor()
             elif char == 'x':
                 self.cursor = self.cursor.x()
-            elif char == 'G':
-                self.cursor = self.cursor.G(count)
             elif char == ' ':
                 self.cursor = self.cursor.toggle_direction()
             elif char == ':':
@@ -263,9 +269,20 @@ class Grid:
     def transpose(self) -> list[list[Square | None]]:
         return list(map(list, zip(*self.grid)))
 
+    def get_row(self, y: int) -> list[Square | None]:
+        if not 0 <= y < self.height:
+            raise IndexError
+        return self.grid[y]
+
+    def get_column(self, x: int) -> list[Square | None]:
+        if not 0 <= x < self.width:
+            raise IndexError
+        return self.transpose()[x]
+
     def within_bounds(self, x: int, y: int) -> bool:
         return 0 <= x < self.width and 0 <= y < self.height
 
+    # TODO: rename to get_square()?
     def get(self, x: int, y: int) -> Square | None:
         if not self.within_bounds(x, y):
             raise IndexError
@@ -466,6 +483,22 @@ class Cursor:
                 dx = sign(dx)
                 dy = sign(dy)
 
+    def topmost(self) -> Square:
+        column = self.grid.get_column(self.square.x)
+        return next(filter(None, column))
+
+    def bottommost(self) -> Square:
+        column = self.grid.get_column(self.square.x)
+        return next(filter(None, reversed(column)))
+
+    def leftmost(self) -> Square:
+        row = self.grid.get_row(self.square.y)
+        return next(filter(None, row))
+
+    def rightmost(self) -> Square:
+        row = self.grid.get_row(self.square.y)
+        return next(filter(None, reversed(row)))
+
     def next_squares(self) -> Iterator[tuple[Square, Direction]]:
         start = self.square
         square = start.next[self.direction]
@@ -522,6 +555,29 @@ class Cursor:
     def l(self) -> Cursor:
         return self.move(1, 0)
 
+    def gg(self) -> Cursor:
+        square = self.topmost() if self.direction is Direction.ACROSS else self.leftmost()
+        return Cursor(square, self.direction, self.grid)
+
+    def G(self, count: int | None) -> Cursor:
+        # G: go to bottom
+        if count is None:
+            square = self.bottommost() if self.direction is Direction.ACROSS else self.rightmost()
+            return Cursor(square, self.direction, self.grid)
+        # nG: go to square with clue number n
+        for square in self.grid.itersquares():
+            if square.clue_number() == count:
+                return Cursor(square, self.direction, self.grid)
+        return self
+
+    def zero(self) -> Cursor:
+        square = self.leftmost() if self.direction is Direction.ACROSS else self.topmost()
+        return Cursor(square, self.direction, self.grid)
+
+    def dollar(self) -> Cursor:
+        square = self.rightmost() if self.direction is Direction.ACROSS else self.bottommost()
+        return Cursor(square, self.direction, self.grid)
+
     def w(self) -> Cursor:
         return self.move_to_next_square(lambda square, direction: square.is_start(direction))
 
@@ -543,12 +599,6 @@ class Cursor:
 
     def x(self) -> Cursor:
         self.square.set(None)
-        return self
-
-    def G(self, count: int) -> Cursor:
-        for square in self.grid.itersquares():
-            if square.clue_number() == count:
-                return Cursor(square, self.direction, self.grid)
         return self
 
     def type(self, char: str) -> Cursor:

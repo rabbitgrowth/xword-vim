@@ -203,6 +203,8 @@ class Puzzle:
             self.cursor = self.cursor.G(int(command))
         elif command == 'q':
             sys.exit()
+        elif command == 'smile':
+            self.show_message(':-)')
 
     def enter_insert_mode(self) -> None:
         self.mode = Mode.INSERT

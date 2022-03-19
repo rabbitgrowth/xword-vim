@@ -103,13 +103,6 @@ class TestMiniPuzzle(unittest.TestCase):
             square = square.next[xword.Direction.DOWN]
         self.assertEqual(square.solution, 'E')
 
-    def test_up_down_left_right(self):
-        cursor = xword.Cursor(self.grid.get(2, 3), xword.Direction.ACROSS, self.grid)
-        self.assertEqual(tuple(cursor.h().square), (1, 3))
-        self.assertEqual(tuple(cursor.j().square), (2, 4))
-        self.assertEqual(tuple(cursor.k().square), (2, 2))
-        self.assertEqual(tuple(cursor.l().square), (4, 3)) # skip black square
-
     def test_next_squares(self):
         cursor = xword.Cursor(self.grid.get(2, 3), xword.Direction.ACROSS, self.grid)
         self.assertEqual([(direction, ''.join(square.solution for square, _ in pairs))
@@ -117,6 +110,13 @@ class TestMiniPuzzle(unittest.TestCase):
                          [(xword.Direction.ACROSS, 'CHEKIRSTIEESTREETMAIDS'),
                           (xword.Direction.DOWN,   'REALISMALBERTACATERECTEDDUCHIESBLAKESHEETSRI'),
                           (xword.Direction.ACROSS, 'RACEDBELARUSLABTECHAL')])
+
+    def test_up_down_left_right(self):
+        cursor = xword.Cursor(self.grid.get(2, 3), xword.Direction.ACROSS, self.grid)
+        self.assertEqual(tuple(cursor.h().square), (1, 3))
+        self.assertEqual(tuple(cursor.j().square), (2, 4))
+        self.assertEqual(tuple(cursor.k().square), (2, 2))
+        self.assertEqual(tuple(cursor.l().square), (4, 3)) # skip black square
 
     def test_word_motions(self):
         cursor = xword.Cursor(self.grid.get(3, 0), xword.Direction.ACROSS, self.grid)

@@ -63,6 +63,8 @@ In descending order of priority:
     - `u` and `U` or `<C-R>` to undo and redo
     - `<C-O>` `<C-I>`
     - `gi`
+- `<Space>` for empty square: useful in insert mode (`r<Space>` should
+  also work in normal mode, although `x` is more efficient)
 - Count with `h` `j` `k` `l` etc.
 - Circled squares
 - Rebuses and how on earth to display them

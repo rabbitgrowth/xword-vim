@@ -113,7 +113,7 @@ class Puzzle:
         term.flush()
 
     def handle_input(self) -> None:
-        char = self.read_char()
+        char = term.read_char()
         if self.mode is Mode.NORMAL:
             if char == 'i':
                 self.enter_insert_mode()
@@ -132,13 +132,13 @@ class Puzzle:
             elif char == 'e':
                 self.cursor = self.cursor.e()
             elif char == 'g':
-                next_char = self.read_char()
+                next_char = term.read_char()
                 if next_char == 'e':
                     self.cursor = self.cursor.ge()
             elif char == 'r':
                 term.underline_cursor()
                 term.flush()
-                next_char = self.read_char()
+                next_char = term.read_char()
                 self.cursor.r(next_char)
                 term.block_cursor()
             elif char == 'x':
@@ -153,7 +153,7 @@ class Puzzle:
             elif char == '\x7f':
                 self.cursor = self.cursor.backspace()
             elif char == 'j':
-                next_char = self.read_char()
+                next_char = term.read_char()
                 if next_char == 'k':
                     self.leave_insert_mode()
                 else:
@@ -161,9 +161,6 @@ class Puzzle:
                     self.cursor = self.cursor.type(next_char)
             else:
                 self.cursor = self.cursor.type(char)
-
-    def read_char(self) -> str:
-        return sys.stdin.read(1)
 
     def read_command(self) -> str:
         term.move_cursor(0, self.grid.displayed_height + 1)

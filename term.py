@@ -11,6 +11,9 @@ def leave_raw_mode() -> None:
     attributes[3] |= termios.ECHO | termios.ICANON
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, attributes)
 
+def read_char() -> str:
+    return sys.stdin.read(1)
+
 def write(text: str) -> None:
     sys.stdout.write(text)
 

@@ -52,6 +52,7 @@ In descending order of priority:
     - `/` `?` `n` `N` (`*` `#` should be pretty useless for crosswords)
     - `incsearch`?
     - `a` to enter insert mode at the next blank square
+    - `s` (although it’s only visually different from `i` in our case)
     - `cw` (`ciw`?)
     - `dw` (`diw`?) to delete word, leaving untouched squares that
       belong to a completely filled word in the other direction?

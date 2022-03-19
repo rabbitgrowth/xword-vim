@@ -139,10 +139,10 @@ class Puzzle:
                 term.underline_cursor()
                 term.flush()
                 next_char = self.read_char()
-                self.cursor.replace(next_char)
+                self.cursor.r(next_char)
                 term.block_cursor()
             elif char == 'x':
-                self.cursor.delete()
+                self.cursor.x()
             elif char == ' ':
                 self.cursor = self.cursor.toggle_direction()
             elif char == ':':
@@ -507,13 +507,13 @@ class Cursor:
     def ge(self) -> Cursor:
         return self.move_to_prev_square(lambda square, direction: square.is_end(direction))
 
-    def replace(self, char) -> None:
+    def r(self, char) -> None:
         try:
             self.square.set(char)
         except ValueError:
             pass
 
-    def delete(self) -> None:
+    def x(self) -> None:
         self.square.set(None)
 
     def type(self, char) -> Cursor:
@@ -526,7 +526,7 @@ class Cursor:
 
     def backspace(self) -> Cursor:
         cursor = self.move_to_prev_square()
-        cursor.delete()
+        cursor.square.set(None)
         return cursor
 
     def displayed_coords(self) -> tuple[int, int]:

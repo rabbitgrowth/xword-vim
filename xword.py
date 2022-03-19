@@ -154,6 +154,8 @@ class Puzzle:
                 self.cursor.r()
             elif char == 'x':
                 self.cursor.x()
+            elif char == 'G':
+                self.cursor = self.cursor.G(count)
             elif char == ' ':
                 self.cursor = self.cursor.toggle_direction()
             elif char == ':':
@@ -262,6 +264,13 @@ class Grid:
         if not self.within_bounds(x, y):
             raise IndexError
         return self.grid[y][x]
+
+    @property
+    def squares(self) -> Iterator[Square]:
+        for row in self.grid:
+            for square in row:
+                if square is not None:
+                    yield square
 
     def first_square(self, direction: Direction) -> Square:
         return self.words[direction][0][0]
@@ -528,6 +537,12 @@ class Cursor:
 
     def x(self) -> None:
         self.square.set(None)
+
+    def G(self, count: int) -> Cursor:
+        for square in self.grid.squares:
+            if square.clue_number() == count:
+                return Cursor(square, self.direction, self.grid)
+        return self
 
     def type(self, char) -> Cursor:
         try:

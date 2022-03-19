@@ -60,8 +60,8 @@ class TestMiniPuzzle(unittest.TestCase):
                          ['REALISM', 'ALBERTA', 'CAT', 'ERECTED', 'DUCHIES', 'BLAKE', 'SHEET', 'SRI'])
 
     def test_clues(self):
-        self.assertEqual([(word.clue.number, word.clue.text)
-                          for word in self.grid.iterwords(xword.Direction.ACROSS)],
+        self.assertEqual([(clue.number, clue.text)
+                          for clue in self.grid.iterclues(xword.Direction.ACROSS)],
                          [(1,  'Competed in the downhill or super-G'),
                           (6,  'Country between Ukraine and Lithuania'),
                           (8,  'Worker in a bio building'),
@@ -70,8 +70,8 @@ class TestMiniPuzzle(unittest.TestCase):
                           (11, 'Alley who\'s a spokesperson for Jenny Craig'),
                           (13, '___ Band, backers of Bruce Springsteen'),
                           (14, 'Hotel cleaners')])
-        self.assertEqual([(word.clue.number, word.clue.text)
-                          for word in self.grid.iterwords(xword.Direction.DOWN)],
+        self.assertEqual([(clue.number, clue.text)
+                          for clue in self.grid.iterclues(xword.Direction.DOWN)],
                          [(1,  'Painting style of Winslow Homer and Edward Hopper'),
                           (2,  'Canadian province that borders Montana'),
                           (3,  'Sofa scratcher'),

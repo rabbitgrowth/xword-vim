@@ -91,6 +91,7 @@ class Puzzle:
                 self.handle_input()
         finally:
             term.leave_alternate_buffer()
+            term.show_cursor()
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_attributes)
 
     def render(self) -> None:

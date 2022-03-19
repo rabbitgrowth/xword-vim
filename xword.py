@@ -186,7 +186,9 @@ class Puzzle:
         return command
 
     def handle_command(self, command: str) -> None:
-        if command == 'q':
+        if command.isdigit():
+            self.cursor = self.cursor.G(int(command))
+        elif command == 'q':
             sys.exit()
 
     def enter_insert_mode(self) -> None:

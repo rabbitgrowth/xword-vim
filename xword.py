@@ -279,12 +279,8 @@ class Grid:
             raise IndexError
         return self.transpose()[x]
 
-    def within_bounds(self, x: int, y: int) -> bool:
-        return 0 <= x < self.width and 0 <= y < self.height
-
-    # TODO: rename to get_square()?
-    def get(self, x: int, y: int) -> Square | None:
-        if not self.within_bounds(x, y):
+    def get_square(self, x: int, y: int) -> Square | None:
+        if not (0 <= x < self.width and 0 <= y < self.height):
             raise IndexError
         return self.grid[y][x]
 
@@ -361,7 +357,7 @@ class Grid:
                         horizontal_edge_boldness = Shape.NONE
                     horizontal_edge_char = BOX_DRAWING_CHARS[Shape.HORIZONTAL][horizontal_edge_boldness]
                     if y < self.height:
-                        square = self.get(x, y)
+                        square = self.get_square(x, y)
                         if square is not None:
                             clue_number = square.clue_number()
                             clue_number_string = str(clue_number) if clue_number is not None else ''
@@ -387,7 +383,7 @@ class Grid:
                     vertical_edge = BOX_DRAWING_CHARS[Shape.VERTICAL][vertical_edge_boldness]
                     line += vertical_edge
                     if x < self.width:
-                        square = self.get(x, y)
+                        square = self.get_square(x, y)
                         line += '░░░' if square is None else square.render()
                 yield line
 
@@ -474,7 +470,7 @@ class Cursor:
             x += dx
             y += dy
             try:
-                square = self.grid.get(x, y)
+                square = self.grid.get_square(x, y)
             except IndexError:
                 return self
             if square is not None:

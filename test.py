@@ -46,15 +46,10 @@ class TestMiniPuzzle(unittest.TestCase):
         self.assertEqual(self.grid.height, 7)
 
     def test_bounds_checking(self):
-        self.assertTrue (self.grid.within_bounds(0,  0))
-        self.assertTrue (self.grid.within_bounds(2,  3))
-        self.assertTrue (self.grid.within_bounds(6,  6))
-        self.assertFalse(self.grid.within_bounds(7,  6))
-        self.assertFalse(self.grid.within_bounds(0, -1))
         with self.assertRaises(IndexError):
-            self.grid.get(7, 6)
+            self.grid.get_square(7, 6)
         with self.assertRaises(IndexError):
-            self.grid.get(0, -1)
+            self.grid.get_square(0, -1)
 
     def test_words(self):
         self.assertEqual([''.join(square.solution for square in word)
@@ -104,7 +99,7 @@ class TestMiniPuzzle(unittest.TestCase):
         self.assertEqual(square.solution, 'E')
 
     def test_next_squares(self):
-        square = self.grid.get(2, 3)
+        square = self.grid.get_square(2, 3)
         cursor = xword.Cursor(square, xword.Direction.ACROSS, self.grid)
         self.assertEqual([(direction, ''.join(square.solution for square, _ in pairs))
                           for direction, pairs in itertools.groupby(cursor.next_squares(), key=operator.itemgetter(1))],
@@ -113,7 +108,7 @@ class TestMiniPuzzle(unittest.TestCase):
                           (xword.Direction.ACROSS, 'RACEDBELARUSLABTECHAL')])
 
     def test_up_down_left_right(self):
-        square = self.grid.get(2, 3)
+        square = self.grid.get_square(2, 3)
         cursor = xword.Cursor(square, xword.Direction.ACROSS, self.grid)
         self.assertEqual(tuple(cursor.h().square), (1, 3))
         self.assertEqual(tuple(cursor.j().square), (2, 4))
@@ -121,7 +116,7 @@ class TestMiniPuzzle(unittest.TestCase):
         self.assertEqual(tuple(cursor.l().square), (4, 3)) # skip black square
 
     def test_word_motions(self):
-        square = self.grid.get(3, 0)
+        square = self.grid.get_square(3, 0)
         cursor = xword.Cursor(square, xword.Direction.ACROSS, self.grid)
         cursor = cursor.w()
         self.assertEqual(tuple(cursor.square), (0, 1))
@@ -166,7 +161,7 @@ class TestMiniPuzzle(unittest.TestCase):
         self.assertIs(cursor.direction, xword.Direction.ACROSS)
 
     def test_rendering(self):
-        square = self.grid.get(6, 3)
+        square = self.grid.get_square(6, 3)
         cursor = xword.Cursor(square, xword.Direction.DOWN, self.grid)
         self.assertEqual(list(self.grid.render(cursor)), ['┌───┬1──┬2──┬3──┬4──┬5──┬───┐',
                                                           '│░░░│   │   │   │   │   │░░░│',

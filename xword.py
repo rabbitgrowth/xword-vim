@@ -668,5 +668,4 @@ def parse(file):
 
 if __name__ == '__main__':
     with open(sys.argv[1], 'rb') as f:
-        solutions, clues = parse(f)
-        Puzzle(solutions, clues).run()
+        Puzzle(*parse(f)).run()

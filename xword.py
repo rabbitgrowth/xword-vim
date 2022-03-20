@@ -74,7 +74,7 @@ BOX_DRAWING_CHARS = {Shape.DOWN_AND_RIGHT:          {Shape.NONE:           '┌'
                      Shape.VERTICAL:                {Shape.NONE:           '│',
                                                      Shape.VERTICAL:       '┃'}}
 
-class Puzzle:
+class Game:
     def __init__(self, solutions: list[list[str | None]], clues: list[str]) -> None:
         self.grid   = Grid(solutions, clues)
         self.cursor = Cursor(self.grid.first_square(Direction.ACROSS), Direction.ACROSS, self.grid)
@@ -668,4 +668,4 @@ def parse(file):
 
 if __name__ == '__main__':
     with open(sys.argv[1], 'rb') as f:
-        Puzzle(*parse(f)).run()
+        Game(*parse(f)).run()

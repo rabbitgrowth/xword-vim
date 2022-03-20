@@ -76,9 +76,9 @@ BOX_DRAWING_CHARS = {Shape.DOWN_AND_RIGHT:          {Shape.NONE:           '┌'
 
 class Game:
     def __init__(self, solutions: list[list[str | None]], clues: list[str]) -> None:
-        self.grid   = Grid(solutions, clues)
-        self.cursor = Cursor(self.grid.first_square(Direction.ACROSS), Direction.ACROSS, self.grid)
-        self.clues  = {direction: Clues(direction, self.grid) for direction in Direction}
+        self.puzzle = Puzzle(solutions, clues)
+        self.cursor = Cursor(self.puzzle.first_square(Direction.ACROSS), Direction.ACROSS, self.puzzle)
+        self.clues  = {direction: Clues(direction, self.puzzle) for direction in Direction}
         self.mode   = Mode.NORMAL
         self.message: str | None = None
 
@@ -98,16 +98,16 @@ class Game:
     def render(self) -> None:
         term.clear_screen()
         term.move_cursor(0, 0)
-        for y, line in enumerate(self.grid.render(self.cursor)):
+        for y, line in enumerate(self.puzzle.render(self.cursor)):
             term.move_cursor(0, y)
             term.write(line)
         for (direction, clues), x_offset, title in zip(self.clues.items(), (2, 36), ('Across', 'Down')):
             for y, line in enumerate([term.bold(title),
-                                      *clues.render(self.cursor, self.grid.displayed_height - 1)]):
-                term.move_cursor(self.grid.displayed_width + x_offset, y)
+                                      *clues.render(self.cursor, self.puzzle.displayed_height - 1)]):
+                term.move_cursor(self.puzzle.displayed_width + x_offset, y)
                 term.write(line)
         if self.message is not None:
-            term.move_cursor(0, self.grid.displayed_height + 1)
+            term.move_cursor(0, self.puzzle.displayed_height + 1)
             term.write(self.message)
         term.move_cursor(*self.cursor.displayed_coords())
         term.show_cursor()
@@ -118,7 +118,7 @@ class Game:
         def append(char):
             chars.append(char)
             term.save_cursor()
-            term.move_cursor(self.grid.displayed_width + 60, self.grid.displayed_height + 1)
+            term.move_cursor(self.puzzle.displayed_width + 60, self.puzzle.displayed_height + 1)
             term.write(''.join(chars[-8:]))
             term.restore_cursor()
             term.flush()
@@ -189,7 +189,7 @@ class Game:
 
     def read_command(self) -> str:
         self.message = None
-        term.move_cursor(0, self.grid.displayed_height + 1)
+        term.move_cursor(0, self.puzzle.displayed_height + 1)
         term.clear_rest_of_line()
         term.leave_raw_mode()
         command = input(':')
@@ -219,7 +219,7 @@ class Game:
     def show_message(self, message: str | None) -> None:
         self.message = message
 
-class Grid:
+class Puzzle:
     def __init__(self, solutions: list[list[str | None]], clues: list[str]) -> None:
         self.grid = [[Square(x, y, solution, None) if solution is not None else None
                       for x, solution in enumerate(row)]
@@ -453,10 +453,10 @@ class Square:
         return f' {guess} '
 
 class Cursor:
-    def __init__(self, square: Square, direction: Direction, grid: Grid) -> None:
+    def __init__(self, square: Square, direction: Direction, puzzle: Puzzle) -> None:
         self.square    = square
         self.direction = direction
-        self.grid      = grid
+        self.puzzle    = puzzle
 
     @property
     def word(self) -> Word:
@@ -467,7 +467,7 @@ class Cursor:
         return Direction.DOWN if self.direction is Direction.ACROSS else Direction.ACROSS
 
     def toggle_direction(self) -> Cursor:
-        return Cursor(self.square, self.other_direction, self.grid)
+        return Cursor(self.square, self.other_direction, self.puzzle)
 
     def move(self, dx: int, dy: int) -> Cursor:
         x, y = self.square
@@ -475,29 +475,29 @@ class Cursor:
             x += dx
             y += dy
             try:
-                square = self.grid.get_square(x, y)
+                square = self.puzzle.get_square(x, y)
             except IndexError:
                 return self
             if square is not None:
-                return Cursor(square, self.direction, self.grid)
+                return Cursor(square, self.direction, self.puzzle)
             else:
                 dx = sign(dx)
                 dy = sign(dy)
 
     def topmost(self) -> Square:
-        column = self.grid.get_column(self.square.x)
+        column = self.puzzle.get_column(self.square.x)
         return next(filter(None, column))
 
     def bottommost(self) -> Square:
-        column = self.grid.get_column(self.square.x)
+        column = self.puzzle.get_column(self.square.x)
         return next(filter(None, reversed(column)))
 
     def leftmost(self) -> Square:
-        row = self.grid.get_row(self.square.y)
+        row = self.puzzle.get_row(self.square.y)
         return next(filter(None, row))
 
     def rightmost(self) -> Square:
-        row = self.grid.get_row(self.square.y)
+        row = self.puzzle.get_row(self.square.y)
         return next(filter(None, reversed(row)))
 
     def next_squares(self) -> Iterator[tuple[Square, Direction]]:
@@ -506,11 +506,11 @@ class Cursor:
         while square is not None:
             yield square, self.direction
             square = square.next[self.direction]
-        square = self.grid.first_square(self.other_direction)
+        square = self.puzzle.first_square(self.other_direction)
         while square is not None:
             yield square, self.other_direction
             square = square.next[self.other_direction]
-        square = self.grid.first_square(self.direction)
+        square = self.puzzle.first_square(self.direction)
         while square is not start:
             assert square is not None
             yield square, self.direction
@@ -522,11 +522,11 @@ class Cursor:
         while square is not None:
             yield square, self.direction
             square = square.prev[self.direction]
-        square = self.grid.last_square(self.other_direction)
+        square = self.puzzle.last_square(self.other_direction)
         while square is not None:
             yield square, self.other_direction
             square = square.prev[self.other_direction]
-        square = self.grid.last_square(self.direction)
+        square = self.puzzle.last_square(self.direction)
         while square is not start:
             assert square is not None
             yield square, self.direction
@@ -535,13 +535,13 @@ class Cursor:
     def move_to_next_square(self, condition: Callable[[Square, Direction], bool] | None = None) -> Cursor:
         for square, direction in self.next_squares():
             if condition is None or condition(square, direction):
-                return Cursor(square, direction, self.grid)
+                return Cursor(square, direction, self.puzzle)
         return self
 
     def move_to_prev_square(self, condition: Callable[[Square, Direction], bool] | None = None) -> Cursor:
         for square, direction in self.prev_squares():
             if condition is None or condition(square, direction):
-                return Cursor(square, direction, self.grid)
+                return Cursor(square, direction, self.puzzle)
         return self
 
     def h(self) -> Cursor:
@@ -558,26 +558,26 @@ class Cursor:
 
     def gg(self) -> Cursor:
         square = self.topmost() if self.direction is Direction.ACROSS else self.leftmost()
-        return Cursor(square, self.direction, self.grid)
+        return Cursor(square, self.direction, self.puzzle)
 
     def G(self, count: int | None) -> Cursor:
         # G: go to bottom
         if count is None:
             square = self.bottommost() if self.direction is Direction.ACROSS else self.rightmost()
-            return Cursor(square, self.direction, self.grid)
+            return Cursor(square, self.direction, self.puzzle)
         # nG: go to square with clue number n
-        for square in self.grid.itersquares():
+        for square in self.puzzle.itersquares():
             if square.clue_number() == count:
-                return Cursor(square, self.direction, self.grid)
+                return Cursor(square, self.direction, self.puzzle)
         return self
 
     def zero(self) -> Cursor:
         square = self.leftmost() if self.direction is Direction.ACROSS else self.topmost()
-        return Cursor(square, self.direction, self.grid)
+        return Cursor(square, self.direction, self.puzzle)
 
     def dollar(self) -> Cursor:
         square = self.rightmost() if self.direction is Direction.ACROSS else self.bottommost()
-        return Cursor(square, self.direction, self.grid)
+        return Cursor(square, self.direction, self.puzzle)
 
     def w(self) -> Cursor:
         return self.move_to_next_square(lambda square, direction: square.is_start(direction))
@@ -620,10 +620,10 @@ class Cursor:
         return (2 + x * 4, 1 + y * 2)
 
 class Clues:
-    def __init__(self, direction: Direction, grid: Grid) -> None:
+    def __init__(self, direction: Direction, puzzle: Puzzle) -> None:
         wrap = textwrap.TextWrapper(width=28).wrap
         self.direction = direction
-        self.prerender = {clue.number: wrap(clue.text) for clue in grid.iterclues(direction)}
+        self.prerender = {clue.number: wrap(clue.text) for clue in puzzle.iterclues(direction)}
         start_index = 0
         self.start_indices = {}
         for number, clue_lines in self.prerender.items():

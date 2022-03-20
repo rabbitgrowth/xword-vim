@@ -78,7 +78,6 @@ class Game:
     def __init__(self, solutions: list[list[str | None]], clues: list[str]) -> None:
         self.puzzle = Puzzle(solutions, clues)
         self.cursor = Cursor(self.puzzle.first_square(Direction.ACROSS), Direction.ACROSS, self.puzzle)
-        self.clues  = {direction: Clues(direction, self.puzzle) for direction in Direction}
         self.mode   = Mode.NORMAL
         self.message: str | None = None
 
@@ -98,12 +97,11 @@ class Game:
     def render(self) -> None:
         term.clear_screen()
         term.move_cursor(0, 0)
-        for y, line in enumerate(self.puzzle.render(self.cursor)):
+        for y, line in enumerate(self.puzzle.render_grid(self.cursor)):
             term.move_cursor(0, y)
             term.write(line)
-        for (direction, clues), x_offset, title in zip(self.clues.items(), (2, 36), ('Across', 'Down')):
-            for y, line in enumerate([term.bold(title),
-                                      *clues.render(self.cursor, self.puzzle.displayed_height - 1)]):
+        for direction, x_offset, title in zip(Direction, (2, 36), ('Across', 'Down')):
+            for y, line in enumerate([term.bold(title), *self.puzzle.render_clues(self.cursor, direction)]):
                 term.move_cursor(self.puzzle.displayed_width + x_offset, y)
                 term.write(line)
         if self.message is not None:
@@ -309,7 +307,7 @@ class Puzzle:
     def last_square(self, direction: Direction) -> Square:
         return self.words[direction][-1][-1]
 
-    def render(self, cursor: Cursor) -> Iterator[str]:
+    def render_grid(self, cursor: Cursor) -> Iterator[str]:
         boldness = {}
         x, y = cursor.word[0]
         if cursor.direction == Direction.ACROSS:
@@ -391,6 +389,29 @@ class Puzzle:
                         square = self.get_square(x, y)
                         line += '░░░' if square is None else square.render()
                 yield line
+
+    def render_clues(self, cursor: Cursor, direction: Direction) -> list[str]:
+        lines = []
+        start = 0 # start index, i.e., number of lines to skip
+        found = False
+        for clue in self.iterclues(direction):
+            is_current = clue.number == cursor.square.word[direction].clue.number
+            if not (is_current or found):
+                start += len(clue.lines)
+            else:
+                found = True
+            for i, line in enumerate(clue.lines):
+                if i == 0:
+                    arrow = '>' if is_current else ' '
+                    line = f'{arrow}{clue.number:>2} {line}'
+                else:
+                    line = f'    {line}'
+                if is_current and direction is cursor.direction:
+                    line = term.bold(line)
+                lines.append(line)
+        height = self.displayed_height - 1
+        start = min(start, max(len(lines) - height, 0))
+        return lines[start:start+height]
 
 class Word:
     def __init__(self, squares: list[Square], clue: Clue) -> None:
@@ -619,37 +640,11 @@ class Cursor:
         x, y = self.square
         return (2 + x * 4, 1 + y * 2)
 
-class Clues:
-    def __init__(self, direction: Direction, puzzle: Puzzle) -> None:
-        wrap = textwrap.TextWrapper(width=28).wrap
-        self.direction = direction
-        self.prerender = {clue.number: wrap(clue.text) for clue in puzzle.iterclues(direction)}
-        start_index = 0
-        self.start_indices = {}
-        for number, clue_lines in self.prerender.items():
-            self.start_indices[number] = start_index
-            start_index += len(clue_lines)
-
-    def render(self, cursor: Cursor, height: int) -> list[str]:
-        lines = []
-        current_clue_number = cursor.square.word[self.direction].clue.number
-        for number, clue_lines in self.prerender.items():
-            for i, clue_line in enumerate(clue_lines):
-                if i == 0:
-                    arrow = '>' if number == current_clue_number else ' '
-                    line = f'{arrow}{number:>2} {clue_line}'
-                else:
-                    line = f'    {clue_line}'
-                if number == current_clue_number and self.direction is cursor.direction:
-                    line = term.bold(line)
-                lines.append(line)
-        start_index = min(self.start_indices[current_clue_number], max(len(lines) - height, 0))
-        return lines[start_index:start_index+height]
-
 class Clue:
     def __init__(self, number: int, text: str) -> None:
         self.number = number
         self.text   = text
+        self.lines  = textwrap.TextWrapper(width=28).wrap(self.text)
 
 def parse(file):
     f.seek(0x2c) # skip checksums, file magic, etc.

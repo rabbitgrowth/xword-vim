@@ -660,7 +660,6 @@ def parse(file):
                  for _ in range(height)]
     f.seek(width * height, 1) # skip guesses
     strings = f.read().decode('iso-8859-1').rstrip('\0').split('\0')
-    print(strings)
     # skip title, author, and copyright information
     clues = strings[3:3+nclues]
     # skip notes

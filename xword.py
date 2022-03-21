@@ -413,28 +413,6 @@ class Puzzle:
         start = min(start, max(len(lines) - height, 0))
         return lines[start:start+height]
 
-class Word:
-    def __init__(self, squares: list[Square], clue: Clue) -> None:
-        self.squares = squares
-        self.clue    = clue
-        self.prev: Word | None = None
-        self.next: Word | None = None
-
-    @typing.overload
-    def __getitem__(self, key: int) -> Square:
-        ...
-    @typing.overload
-    def __getitem__(self, key: slice) -> list[Square]:
-        ...
-    def __getitem__(self, key):
-        return self.squares[key]
-
-    def __len__(self) -> int:
-        return len(self.squares)
-
-    def __iter__(self) -> Iterator[Square]:
-        yield from self.squares
-
 class Square:
     def __init__(self, x: int, y: int, solution: str, guess: str | None) -> None:
         self.x        = x
@@ -472,6 +450,34 @@ class Square:
     def render(self) -> str:
         guess = self.guess if self.guess is not None else ' '
         return f' {guess} '
+
+class Word:
+    def __init__(self, squares: list[Square], clue: Clue) -> None:
+        self.squares = squares
+        self.clue    = clue
+        self.prev: Word | None = None
+        self.next: Word | None = None
+
+    @typing.overload
+    def __getitem__(self, key: int) -> Square:
+        ...
+    @typing.overload
+    def __getitem__(self, key: slice) -> list[Square]:
+        ...
+    def __getitem__(self, key):
+        return self.squares[key]
+
+    def __len__(self) -> int:
+        return len(self.squares)
+
+    def __iter__(self) -> Iterator[Square]:
+        yield from self.squares
+
+class Clue:
+    def __init__(self, number: int, text: str) -> None:
+        self.number = number
+        self.text   = text
+        self.lines  = textwrap.TextWrapper(width=28).wrap(self.text)
 
 class Cursor:
     def __init__(self, square: Square, direction: Direction, puzzle: Puzzle) -> None:
@@ -639,12 +645,6 @@ class Cursor:
     def displayed_coords(self) -> tuple[int, int]:
         x, y = self.square
         return (2 + x * 4, 1 + y * 2)
-
-class Clue:
-    def __init__(self, number: int, text: str) -> None:
-        self.number = number
-        self.text   = text
-        self.lines  = textwrap.TextWrapper(width=28).wrap(self.text)
 
 def parse(file):
     f.seek(0x2c) # skip checksums, file magic, etc.

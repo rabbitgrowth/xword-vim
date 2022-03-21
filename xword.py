@@ -89,6 +89,8 @@ class Game:
             while True:
                 self.render()
                 self.handle_input()
+        except KeyboardInterrupt:
+            pass
         finally:
             term.leave_alternate_buffer()
             term.show_cursor()

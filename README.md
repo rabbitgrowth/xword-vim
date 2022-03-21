@@ -39,9 +39,6 @@ to normal mode, press `<Esc>` or `jk`.
 
 In descending order of priority:
 
-- Parse .puz files
-- Warn if screen is not big enough
-- Exit gracefully on interrupt
 - Pencil mode
 - Check answers with `:check`
 - Reveal answers

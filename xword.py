@@ -82,6 +82,11 @@ class Game:
         self.message: str | None = None
 
     def run(self) -> None:
+        width, height = term.get_window_size()
+        min_width  = self.puzzle.displayed_width + 68
+        min_height = self.puzzle.displayed_height + 2
+        if width < min_width or height < min_height:
+            sys.exit(f'Your window needs to be at least {min_width}x{min_height}.')
         old_attributes = termios.tcgetattr(sys.stdin)
         term.enter_raw_mode()
         term.enter_alternate_buffer()

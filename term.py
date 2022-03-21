@@ -1,15 +1,22 @@
+import fcntl
+import struct
 import sys
 import termios
 
+def get_window_size() -> tuple[int, int]:
+    result = fcntl.ioctl(sys.stdout, termios.TIOCGWINSZ, struct.pack('HHHH', 0, 0, 0, 0))
+    height, width, _, _ = struct.unpack('HHHH', result)
+    return (width, height)
+
 def enter_raw_mode() -> None:
-    attributes = termios.tcgetattr(sys.stdin)
+    attributes = termios.tcgetattr(sys.stdout)
     attributes[3] &= ~(termios.ECHO | termios.ICANON)
-    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, attributes)
+    termios.tcsetattr(sys.stdout, termios.TCSADRAIN, attributes)
 
 def leave_raw_mode() -> None:
-    attributes = termios.tcgetattr(sys.stdin)
+    attributes = termios.tcgetattr(sys.stdout)
     attributes[3] |= termios.ECHO | termios.ICANON
-    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, attributes)
+    termios.tcsetattr(sys.stdout, termios.TCSADRAIN, attributes)
 
 def read_char() -> str:
     return sys.stdin.read(1)

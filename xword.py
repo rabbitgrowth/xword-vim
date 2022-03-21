@@ -108,7 +108,6 @@ class Game:
             term.move_cursor(0, self.puzzle.displayed_height + 1)
             term.write(self.message)
         term.move_cursor(*self.cursor.displayed_coords())
-        term.show_cursor()
         term.flush()
 
     def handle_input(self) -> None:
@@ -194,6 +193,7 @@ class Game:
         term.enter_raw_mode()
         term.hide_cursor() # prevent cursor from briefly appearing under the colon
         term.flush()
+        term.show_cursor()
         return command
 
     def handle_command(self, command: str) -> None:

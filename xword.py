@@ -497,6 +497,7 @@ class Square:
         return None
 
     def set(self, char: str) -> None:
+        # TODO: type !@#$%^&*() to pencil in numbers?
         if not char.isalnum():
             raise ValueError
         self.guess  = char.upper()

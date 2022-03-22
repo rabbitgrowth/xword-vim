@@ -265,6 +265,7 @@ class Game:
         self.i()
 
     def s(self) -> None:
+        # Only visually different from i unlike in Vim
         self.cursor = self.cursor.x()
         self.i()
 

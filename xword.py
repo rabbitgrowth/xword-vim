@@ -24,6 +24,11 @@ class Mode(enum.Enum):
     NORMAL = enum.auto()
     INSERT = enum.auto()
 
+class Status(enum.Enum):
+    NORMAL       = enum.auto()
+    PENCILLED_IN = enum.auto()
+    MARKED_WRONG = enum.auto()
+
 class Shape(enum.Enum):
     DOWN_AND_RIGHT          = enum.auto()
     DOWN_AND_HORIZONTAL     = enum.auto()
@@ -205,10 +210,46 @@ class Game:
     def handle_command(self, command: str) -> None:
         if command.isdigit():
             self.cursor = self.cursor.G(int(command))
-        elif command == 'q':
+        elif command in ('c', 'check'):
+            self.check()
+        elif command in ('c!', 'check!'):
+            self.check(mark=True)
+        elif command in ('q', 'quit'):
             sys.exit()
         elif command == 'smile':
             self.show_message(':-)')
+
+    def check(self, mark: bool = False) -> None:
+        #                      wrong
+        #              ┌──────┬──────┬──────┐
+        #              │ none │ some │ all  │
+        #       ┌──────┼──────┼──────┴──────┤
+        #       │ none │ done │             │
+        #       ├──────┼──────┤    amiss    │
+        # empty │ some │ fine │             │
+        #       ├──────┼──────┴─────────────┤
+        #       │  all │  nothing to check  │
+        #       └──────┴────────────────────┘
+        is_empty = []
+        is_wrong = []
+        for square in self.puzzle.itersquares():
+            is_empty.append(square.guess is None)
+            is_wrong.append(square.is_wrong())
+            if mark:
+                square.mark()
+        if all(is_empty):
+            self.show_message("There's nothing to check.")
+        elif any(is_wrong):
+            if mark:
+                nwrong = sum(is_wrong)
+                suffix = 's' if nwrong > 1 else ''
+                self.show_message(f"Found {nwrong} wrong square{suffix}.")
+            else:
+                self.show_message("At least one square's amiss.")
+        elif any(is_empty):
+            self.show_message("You're doing fine.")
+        else:
+            self.show_message("Congrats! You've finished the puzzle.")
 
     def enter_insert_mode(self) -> None:
         self.mode = Mode.INSERT
@@ -425,10 +466,10 @@ class Square:
         self.y        = y
         self.solution = solution
         self.guess    = guess
+        self.status   = Status.NORMAL
         self.prev: dict[Direction, Square | None] = dict.fromkeys(Direction)
         self.next: dict[Direction, Square | None] = dict.fromkeys(Direction)
         self.word: dict[Direction, Word] = {}
-        self.pencilled_in = False
 
     def __iter__(self) -> Iterator[int]:
         yield self.x
@@ -440,6 +481,9 @@ class Square:
     def is_end(self, direction: Direction) -> bool:
         return self is self.word[direction][-1]
 
+    def is_wrong(self) -> bool:
+        return self.guess is not None and self.guess != self.solution
+
     def clue_number(self) -> int | None:
         for direction in Direction:
             if self.is_start(direction):
@@ -449,20 +493,26 @@ class Square:
     def set(self, char: str) -> None:
         if not char.isalnum():
             raise ValueError
-        self.guess = char.upper()
-        self.pencilled_in = char.isupper()
+        self.guess  = char.upper()
+        self.status = Status.PENCILLED_IN if char.isupper() else Status.NORMAL
 
     def unset(self) -> None:
-        self.guess = None
+        self.guess  = None
+        self.status = Status.NORMAL
 
     def toggle_pencil(self) -> None:
         if self.guess is not None:
-            self.pencilled_in = not self.pencilled_in
+            self.status = Status.NORMAL if self.status is Status.PENCILLED_IN else Status.PENCILLED_IN
+
+    def mark(self) -> None:
+        self.status = Status.MARKED_WRONG if self.is_wrong() else Status.NORMAL
 
     def render(self) -> str:
         guess = self.guess if self.guess is not None else ' '
-        if guess is not None and self.pencilled_in:
+        if self.status is Status.PENCILLED_IN:
             guess = term.dim(guess)
+        elif self.status is Status.MARKED_WRONG:
+            guess = term.red(guess)
         return f' {guess} '
 
 class Word:

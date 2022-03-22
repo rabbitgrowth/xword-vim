@@ -68,3 +68,6 @@ def bold(text: str) -> str:
 
 def dim(text: str) -> str:
     return f'\x1b[2m{text}\x1b[22m'
+
+def red(text: str) -> str:
+    return f'\x1b[31m{text}\x1b[39m'

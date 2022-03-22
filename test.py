@@ -157,16 +157,24 @@ class TestMiniPuzzle(unittest.TestCase):
         word   = next(self.puzzle.iterwords(xword.Direction.ACROSS))
         cursor = xword.Cursor(square, xword.Direction.ACROSS, self.puzzle)
         cursor = cursor.type('S').type('K').type('I').type('e').type('d')
-        self.assertEqual([(square.pencilled_in, square.guess) for square in word],
-                         [(True, 'S'), (True, 'K'), (True, 'I'), (False, 'E'), (False, 'D')])
+        self.assertEqual([(square.status, square.guess) for square in word],
+                         [(xword.Status.PENCILLED_IN, 'S'),
+                          (xword.Status.PENCILLED_IN, 'K'),
+                          (xword.Status.PENCILLED_IN, 'I'),
+                          (xword.Status.NORMAL,       'E'),
+                          (xword.Status.NORMAL,       'D')])
         cursor = cursor.b().tilde().tilde().tilde().tilde().tilde()
-        self.assertEqual([(square.pencilled_in, square.guess) for square in word],
-                         [(False, 'S'), (False, 'K'), (False, 'I'), (True, 'E'), (True, 'D')])
+        self.assertEqual([(square.status, square.guess) for square in word],
+                         [(xword.Status.NORMAL,       'S'),
+                          (xword.Status.NORMAL,       'K'),
+                          (xword.Status.NORMAL,       'I'),
+                          (xword.Status.PENCILLED_IN, 'E'),
+                          (xword.Status.PENCILLED_IN, 'D')])
         self.assertEqual(tuple(cursor.square), (0, 1))
         cursor = cursor.tilde() # should have no effect on an empty square
         self.assertEqual(tuple(cursor.square), (1, 1))
         square = self.puzzle.get_square(0, 1)
-        self.assertEqual((square.pencilled_in, square.guess), (False, None))
+        self.assertEqual((square.status, square.guess), (xword.Status.NORMAL, None))
 
     def test_toggle_direction(self):
         square = next(self.puzzle.itersquares())

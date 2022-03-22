@@ -179,6 +179,8 @@ class Game:
                 self.handle_command(self.read_command())
             elif char == 'i':
                 self.i()
+            elif char == 'a':
+                self.a()
         elif self.mode is Mode.INSERT:
             if char == '\x1b':
                 self.escape()
@@ -255,6 +257,10 @@ class Game:
         self.mode = Mode.INSERT
         self.show_message('-- INSERT --')
         term.ibeam_cursor()
+
+    def a(self) -> None:
+        self.cursor = self.cursor.move_to_next_square()
+        self.i()
 
     def escape(self) -> None:
         self.mode = Mode.NORMAL

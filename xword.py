@@ -208,15 +208,51 @@ class Game:
         return command
 
     def handle_command(self, command: str) -> None:
+        if command.endswith('!'):
+            bang = True
+            command = command[:-1]
+        else:
+            bang = False
         if command.isdigit():
             self.cursor = self.cursor.G(int(command))
         elif command == 'q':
             sys.exit()
         elif command == 'check':
-            for square in self.puzzle.itersquares():
-                square.check()
+            self.check(bang=bang)
         elif command == 'smile':
             self.show_message(':-)')
+
+    def check(self, bang: bool) -> None:
+        #                      wrong
+        #              ┌──────┬──────┬──────┐
+        #              │ none │ some │ all  │
+        #       ┌──────┼──────┼──────┴──────┤
+        #       │ none │ done │             │
+        #       ├──────┼──────┤    amiss    │
+        # empty │ some │ fine │             │
+        #       ├──────┼──────┴─────────────┤
+        #       │  all │  nothing to check  │
+        #       └──────┴────────────────────┘
+        is_empty = []
+        is_wrong = []
+        for square in self.puzzle.itersquares():
+            is_empty.append(square.guess is None)
+            is_wrong.append(square.is_wrong())
+            if bang:
+                square.mark()
+        if all(is_empty):
+            self.show_message("There's nothing to check.")
+        elif any(is_wrong):
+            if bang:
+                nwrong = sum(is_wrong)
+                suffix = 's' if nwrong > 1 else ''
+                self.show_message(f"Found {nwrong} wrong square{suffix}.")
+            else:
+                self.show_message("At least one square's amiss.")
+        elif any(is_empty):
+            self.show_message("You're doing fine.")
+        else:
+            self.show_message("Congrats! You've finished the puzzle.")
 
     def enter_insert_mode(self) -> None:
         self.mode = Mode.INSERT
@@ -471,7 +507,7 @@ class Square:
         if self.guess is not None:
             self.status = Status.NORMAL if self.status is Status.PENCILLED_IN else Status.PENCILLED_IN
 
-    def check(self) -> None:
+    def mark(self) -> None:
         self.status = Status.MARKED_WRONG if self.is_wrong() else Status.NORMAL
 
     def render(self) -> str:

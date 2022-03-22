@@ -261,7 +261,7 @@ class Game:
         term.ibeam_cursor()
 
     def a(self) -> None:
-        self.cursor = self.cursor.move_to_next_square()
+        self.cursor = self.cursor.go_to_next_square()
         self.i()
 
     def s(self) -> None:
@@ -637,13 +637,13 @@ class Cursor:
             yield square, self.direction
             square = square.prev[self.direction]
 
-    def move_to_next_square(self, condition: Callable[[Square, Direction], bool] | None = None) -> Cursor:
+    def go_to_next_square(self, condition: Callable[[Square, Direction], bool] | None = None) -> Cursor:
         for square, direction in self.next_squares():
             if condition is None or condition(square, direction):
                 return Cursor(square, direction, self.puzzle)
         return self
 
-    def move_to_prev_square(self, condition: Callable[[Square, Direction], bool] | None = None) -> Cursor:
+    def go_to_prev_square(self, condition: Callable[[Square, Direction], bool] | None = None) -> Cursor:
         for square, direction in self.prev_squares():
             if condition is None or condition(square, direction):
                 return Cursor(square, direction, self.puzzle)
@@ -685,16 +685,16 @@ class Cursor:
         return Cursor(square, self.direction, self.puzzle)
 
     def w(self) -> Cursor:
-        return self.move_to_next_square(lambda square, direction: square.is_start(direction))
+        return self.go_to_next_square(lambda square, direction: square.is_start(direction))
 
     def b(self) -> Cursor:
-        return self.move_to_prev_square(lambda square, direction: square.is_start(direction))
+        return self.go_to_prev_square(lambda square, direction: square.is_start(direction))
 
     def e(self) -> Cursor:
-        return self.move_to_next_square(lambda square, direction: square.is_end(direction))
+        return self.go_to_next_square(lambda square, direction: square.is_end(direction))
 
     def ge(self) -> Cursor:
-        return self.move_to_prev_square(lambda square, direction: square.is_end(direction))
+        return self.go_to_prev_square(lambda square, direction: square.is_end(direction))
 
     def r(self, char: str) -> Cursor:
         try:
@@ -712,7 +712,7 @@ class Cursor:
 
     def tilde(self) -> Cursor:
         self.square.toggle_pencil()
-        return self.move_to_next_square()
+        return self.go_to_next_square()
 
     def type(self, char: str) -> Cursor:
         try:
@@ -720,10 +720,10 @@ class Cursor:
         except ValueError:
             return self
         else:
-            return self.move_to_next_square()
+            return self.go_to_next_square()
 
     def backspace(self) -> Cursor:
-        cursor = self.move_to_prev_square()
+        cursor = self.go_to_prev_square()
         cursor.square.unset()
         return cursor
 

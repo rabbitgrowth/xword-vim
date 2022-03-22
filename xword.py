@@ -448,10 +448,8 @@ class Square:
                 return self.word[direction].clue.number
         return None
 
-    def set(self, char: str | None) -> None:
-        if char is None:
-            self.guess = None
-        elif char.isupper():
+    def set(self, char: str) -> None:
+        if char.isupper():
             self.guess = char
             self.pencilled_in = True
         elif char.islower():
@@ -461,6 +459,9 @@ class Square:
             self.guess = char
         else:
             raise ValueError
+
+    def unset(self) -> None:
+        self.guess = None
 
     def toggle_pencil(self) -> None:
         if self.guess is not None:
@@ -647,7 +648,7 @@ class Cursor:
         return self
 
     def x(self) -> Cursor:
-        self.square.set(None)
+        self.square.unset()
         return self
 
     def tilde(self) -> Cursor:
@@ -664,7 +665,7 @@ class Cursor:
 
     def backspace(self) -> Cursor:
         cursor = self.move_to_prev_square()
-        cursor.square.set(None)
+        cursor.square.unset()
         return cursor
 
     def displayed_coords(self) -> tuple[int, int]:

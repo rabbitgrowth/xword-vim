@@ -125,14 +125,12 @@ class Game:
             term.write(''.join(chars[-8:]))
             term.restore_cursor()
             term.flush()
-        while True:
-            char = term.read_char()
-            if char.isdigit() and not (char == '0' and not chars):
-                append(char)
-            else:
-                break
-        count = int(''.join(chars)) if chars else None # distinguish between G and 1G
+        char = term.read_char()
         if self.mode is Mode.NORMAL:
+            while char.isdigit() and not (char == '0' and not chars):
+                append(char)
+                char = term.read_char()
+            count = int(''.join(chars)) if chars else None # distinguish between G and 1G
             if char == 'i':
                 self.enter_insert_mode()
             elif char == 'h':

@@ -447,16 +447,10 @@ class Square:
         return None
 
     def set(self, char: str) -> None:
-        if char.isupper():
-            self.guess = char
-            self.pencilled_in = True
-        elif char.islower():
-            self.guess = char.upper()
-            self.pencilled_in = False
-        elif char.isdigit():
-            self.guess = char
-        else:
+        if not char.isalnum():
             raise ValueError
+        self.guess = char.upper()
+        self.pencilled_in = char.isupper()
 
     def unset(self) -> None:
         self.guess = None

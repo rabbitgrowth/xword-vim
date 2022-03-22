@@ -27,13 +27,14 @@ if you already use Vim):
   the first down word, etc.
 - `r<letter>`: replace the current letter with the specified letter.
 - `x`: delete the current letter.
+- `~`: toggle the pencilling of a square.
 - `<Space>`: toggle the direction of the cursor.
 - `:q<Enter>`: [quit](https://www.youtube.com/watch?v=TLbfqZBL8t8).
 
 To actually type letters into the puzzle, press `i` to enter *insert
-mode*. The cursor turns into an I-beam, and you can type as normal,
-using `<Backspace>` to delete mistakes. To leave insert mode and go back
-to normal mode, press `<Esc>` or `jk`.
+mode* and type in lowercase. If you type in uppercase, the letters will
+be pencilled in. You can use `<Backspace>` to delete mistakes as usual.
+To leave insert mode and go back to normal mode, press `<Esc>` or `jk`.
 
 ## Todo
 

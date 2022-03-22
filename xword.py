@@ -24,6 +24,11 @@ class Mode(enum.Enum):
     NORMAL = enum.auto()
     INSERT = enum.auto()
 
+class Status(enum.Enum):
+    NORMAL       = enum.auto()
+    PENCILLED_IN = enum.auto()
+    MARKED_WRONG = enum.auto()
+
 class Shape(enum.Enum):
     DOWN_AND_RIGHT          = enum.auto()
     DOWN_AND_HORIZONTAL     = enum.auto()
@@ -207,6 +212,9 @@ class Game:
             self.cursor = self.cursor.G(int(command))
         elif command == 'q':
             sys.exit()
+        elif command == 'check':
+            for square in self.puzzle.itersquares():
+                square.check()
         elif command == 'smile':
             self.show_message(':-)')
 
@@ -425,10 +433,10 @@ class Square:
         self.y        = y
         self.solution = solution
         self.guess    = guess
+        self.status   = Status.NORMAL
         self.prev: dict[Direction, Square | None] = dict.fromkeys(Direction)
         self.next: dict[Direction, Square | None] = dict.fromkeys(Direction)
         self.word: dict[Direction, Word] = {}
-        self.pencilled_in = False
 
     def __iter__(self) -> Iterator[int]:
         yield self.x
@@ -440,6 +448,9 @@ class Square:
     def is_end(self, direction: Direction) -> bool:
         return self is self.word[direction][-1]
 
+    def is_wrong(self) -> bool:
+        return self.guess is not None and self.guess != self.solution
+
     def clue_number(self) -> int | None:
         for direction in Direction:
             if self.is_start(direction):
@@ -449,20 +460,26 @@ class Square:
     def set(self, char: str) -> None:
         if not char.isalnum():
             raise ValueError
-        self.guess = char.upper()
-        self.pencilled_in = char.isupper()
+        self.guess  = char.upper()
+        self.status = Status.PENCILLED_IN if char.isupper() else Status.NORMAL
 
     def unset(self) -> None:
-        self.guess = None
+        self.guess  = None
+        self.status = Status.NORMAL
 
     def toggle_pencil(self) -> None:
         if self.guess is not None:
-            self.pencilled_in = not self.pencilled_in
+            self.status = Status.NORMAL if self.status is Status.PENCILLED_IN else Status.PENCILLED_IN
+
+    def check(self) -> None:
+        self.status = Status.MARKED_WRONG if self.is_wrong() else Status.NORMAL
 
     def render(self) -> str:
         guess = self.guess if self.guess is not None else ' '
-        if guess is not None and self.pencilled_in:
+        if self.status is Status.PENCILLED_IN:
             guess = term.dim(guess)
+        elif self.status is Status.MARKED_WRONG:
+            guess = term.red(guess)
         return f' {guess} '
 
 class Word:

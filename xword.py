@@ -264,11 +264,14 @@ class Game:
 
     def escape(self) -> None:
         self.mode = Mode.NORMAL
-        self.show_message(None)
+        self.hide_message()
         term.block_cursor()
 
-    def show_message(self, message: str | None) -> None:
+    def show_message(self, message: str) -> None:
         self.message = message
+
+    def hide_message(self) -> None:
+        self.message = None
 
 class Puzzle:
     def __init__(self, solutions: list[list[str | None]], clues: list[str]) -> None:

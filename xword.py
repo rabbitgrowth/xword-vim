@@ -428,6 +428,7 @@ class Square:
         self.prev: dict[Direction, Square | None] = dict.fromkeys(Direction)
         self.next: dict[Direction, Square | None] = dict.fromkeys(Direction)
         self.word: dict[Direction, Word] = {}
+        self.pencilled_in = False
 
     def __iter__(self) -> Iterator[int]:
         yield self.x
@@ -448,13 +449,21 @@ class Square:
     def set(self, char: str | None) -> None:
         if char is None:
             self.guess = None
-        elif char.isalnum():
+        elif char.isupper():
+            self.guess = char
+            self.pencilled_in = True
+        elif char.islower():
             self.guess = char.upper()
+            self.pencilled_in = False
+        elif char.isdigit():
+            self.guess = char
         else:
             raise ValueError
 
     def render(self) -> str:
         guess = self.guess if self.guess is not None else ' '
+        if guess is not None and self.pencilled_in:
+            guess = term.dim(guess)
         return f' {guess} '
 
 class Word:

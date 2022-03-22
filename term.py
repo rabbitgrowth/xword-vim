@@ -64,4 +64,7 @@ def ibeam_cursor() -> None:
     write('\x1b[5 q')
 
 def bold(text: str) -> str:
-    return f'\x1b[1m{text}\x1b[0m'
+    return f'\x1b[1m{text}\x1b[22m'
+
+def dim(text: str) -> str:
+    return f'\x1b[2m{text}\x1b[22m'

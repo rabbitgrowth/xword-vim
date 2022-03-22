@@ -19,13 +19,13 @@ if you already use Vim):
   leftmost (`0`), or rightmost (`$`) square – if the cursor is in the
   across direction. If it’s in the down direction, the behaviours of
   `gg` `G` and `0` `$` are swapped.
-- `<number>G`: jump to the square with the specified clue number.
+- `[number]G`: jump to the square with the specified clue number.
 - `w` `b` `e` `ge`: jump to the next word (`w`), previous word (`b`),
   next end of word (`e`), or previous end of word (`ge`) (“word” meaning
   “run of white squares”). The across words and down words are linked,
   such that if you’re at the last across word and press `w`, you jump to
   the first down word, etc.
-- `r<letter>`: replace the current letter with the specified letter.
+- `r[letter]`: replace the current letter with the specified letter.
 - `x`: delete the current letter.
 - `~`: toggle the pencilling of a square.
 - `<Space>`: toggle the direction of the cursor.

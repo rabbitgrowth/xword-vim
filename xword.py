@@ -670,7 +670,7 @@ class Cursor:
         if count is None:
             square = self.bottommost() if self.direction is Direction.ACROSS else self.rightmost()
             return Cursor(square, self.direction, self.puzzle)
-        # nG: go to square with clue number n
+        # [count]G: go to square with clue number [count]
         for square in self.puzzle.itersquares():
             if square.clue_number() == count:
                 return Cursor(square, self.direction, self.puzzle)

@@ -170,6 +170,8 @@ class Game:
                 term.block_cursor()
             elif char == 'x':
                 self.cursor = self.cursor.x()
+            elif char == '~':
+                self.cursor = self.cursor.tilde()
             elif char == ' ':
                 self.cursor = self.cursor.toggle_direction()
             elif char == ':':
@@ -428,6 +430,7 @@ class Square:
         self.prev: dict[Direction, Square | None] = dict.fromkeys(Direction)
         self.next: dict[Direction, Square | None] = dict.fromkeys(Direction)
         self.word: dict[Direction, Word] = {}
+        self.pencilled_in = False
 
     def __iter__(self) -> Iterator[int]:
         yield self.x
@@ -448,13 +451,25 @@ class Square:
     def set(self, char: str | None) -> None:
         if char is None:
             self.guess = None
-        elif char.isalnum():
+        elif char.isupper():
+            self.guess = char
+            self.pencilled_in = True
+        elif char.islower():
             self.guess = char.upper()
+            self.pencilled_in = False
+        elif char.isdigit():
+            self.guess = char
         else:
             raise ValueError
 
+    def toggle_pencil(self) -> None:
+        if self.guess is not None:
+            self.pencilled_in = not self.pencilled_in
+
     def render(self) -> str:
         guess = self.guess if self.guess is not None else ' '
+        if guess is not None and self.pencilled_in:
+            guess = term.dim(guess)
         return f' {guess} '
 
 class Word:
@@ -634,6 +649,10 @@ class Cursor:
     def x(self) -> Cursor:
         self.square.set(None)
         return self
+
+    def tilde(self) -> Cursor:
+        self.square.toggle_pencil()
+        return self.move_to_next_square()
 
     def type(self, char: str) -> Cursor:
         try:

@@ -162,6 +162,7 @@ class TestMiniPuzzle(unittest.TestCase):
         cursor = cursor.b().tilde().tilde().tilde().tilde().tilde()
         self.assertEqual([(square.pencilled_in, square.guess) for square in word],
                          [(False, 'S'), (False, 'K'), (False, 'I'), (True, 'E'), (True, 'D')])
+        self.assertEqual(tuple(cursor.square), (0, 1))
         cursor = cursor.tilde() # should have no effect on an empty square
         self.assertEqual(tuple(cursor.square), (1, 1))
         square = self.puzzle.get_square(0, 1)

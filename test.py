@@ -159,10 +159,10 @@ class TestMiniPuzzle(unittest.TestCase):
         cursor = cursor.type('S').type('K').type('I').type('e').type('d')
         self.assertEqual([(square.pencilled_in, square.guess) for square in word],
                          [(True, 'S'), (True, 'K'), (True, 'I'), (False, 'E'), (False, 'D')])
-        cursor = cursor.b().tilde().tilde().tilde()
+        cursor = cursor.b().tilde().tilde().tilde().tilde().tilde()
         self.assertEqual([(square.pencilled_in, square.guess) for square in word],
-                         [(False, 'S'), (False, 'K'), (False, 'I'), (False, 'E'), (False, 'D')])
-        cursor = cursor.w().tilde() # should have no effect on an empty square
+                         [(False, 'S'), (False, 'K'), (False, 'I'), (True, 'E'), (True, 'D')])
+        cursor = cursor.tilde() # should have no effect on an empty square
         self.assertEqual(tuple(cursor.square), (1, 1))
         square = self.puzzle.get_square(0, 1)
         self.assertEqual((square.pencilled_in, square.guess), (False, None))

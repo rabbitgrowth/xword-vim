@@ -208,21 +208,18 @@ class Game:
         return command
 
     def handle_command(self, command: str) -> None:
-        if command.endswith('!'):
-            bang = True
-            command = command[:-1]
-        else:
-            bang = False
         if command.isdigit():
             self.cursor = self.cursor.G(int(command))
         elif command in ('c', 'check'):
-            self.check(bang=bang)
+            self.check()
+        elif command in ('c!', 'check!'):
+            self.check(mark=True)
         elif command in ('q', 'quit'):
             sys.exit()
         elif command == 'smile':
             self.show_message(':-)')
 
-    def check(self, bang: bool) -> None:
+    def check(self, mark: bool = False) -> None:
         #                      wrong
         #              ┌──────┬──────┬──────┐
         #              │ none │ some │ all  │
@@ -238,12 +235,12 @@ class Game:
         for square in self.puzzle.itersquares():
             is_empty.append(square.guess is None)
             is_wrong.append(square.is_wrong())
-            if bang:
+            if mark:
                 square.mark()
         if all(is_empty):
             self.show_message("There's nothing to check.")
         elif any(is_wrong):
-            if bang:
+            if mark:
                 nwrong = sum(is_wrong)
                 suffix = 's' if nwrong > 1 else ''
                 self.show_message(f"Found {nwrong} wrong square{suffix}.")

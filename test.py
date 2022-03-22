@@ -179,9 +179,9 @@ class TestMiniPuzzle(unittest.TestCase):
     def test_toggle_direction(self):
         square = next(self.puzzle.itersquares())
         cursor = xword.Cursor(square, xword.Direction.ACROSS, self.puzzle)
-        cursor = cursor.toggle_direction()
+        cursor = cursor.space()
         self.assertIs(cursor.direction, xword.Direction.DOWN)
-        cursor = cursor.toggle_direction()
+        cursor = cursor.space()
         self.assertIs(cursor.direction, xword.Direction.ACROSS)
 
     def test_rendering(self):

@@ -137,7 +137,7 @@ class Game:
                 char = term.read_char()
             count = int(''.join(chars)) if chars else None # distinguish between G and 1G
             if char == 'i':
-                self.enter_insert_mode()
+                self.i()
             elif char == 'h':
                 self.cursor = self.cursor.h()
             elif char == 'j':
@@ -176,19 +176,19 @@ class Game:
             elif char == '~':
                 self.cursor = self.cursor.tilde()
             elif char == ' ':
-                self.cursor = self.cursor.toggle_direction()
+                self.cursor = self.cursor.space()
             elif char == ':':
                 self.handle_command(self.read_command())
         elif self.mode is Mode.INSERT:
             if char == '\x1b':
-                self.leave_insert_mode()
+                self.escape()
             elif char == '\x7f':
                 self.cursor = self.cursor.backspace()
             elif char == 'j':
                 append(char)
                 next_char = term.read_char()
                 if next_char == 'k':
-                    self.leave_insert_mode()
+                    self.escape()
                 else:
                     self.cursor = self.cursor.type(char)
                     self.cursor = self.cursor.type(next_char)
@@ -251,12 +251,12 @@ class Game:
         else:
             self.show_message("Congrats! You've finished the puzzle.")
 
-    def enter_insert_mode(self) -> None:
+    def i(self) -> None:
         self.mode = Mode.INSERT
         self.show_message('-- INSERT --')
         term.ibeam_cursor()
 
-    def leave_insert_mode(self) -> None:
+    def escape(self) -> None:
         self.mode = Mode.NORMAL
         self.show_message(None)
         term.block_cursor()
@@ -557,7 +557,7 @@ class Cursor:
     def other_direction(self) -> Direction:
         return Direction.DOWN if self.direction is Direction.ACROSS else Direction.ACROSS
 
-    def toggle_direction(self) -> Cursor:
+    def space(self) -> Cursor:
         return Cursor(self.square, self.other_direction, self.puzzle)
 
     def move(self, dx: int, dy: int) -> Cursor:

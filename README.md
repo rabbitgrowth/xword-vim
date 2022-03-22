@@ -40,17 +40,13 @@ To leave insert mode and go back to normal mode, press `<Esc>` or `jk`.
 
 In descending order of priority:
 
-- Pencil mode
-- Check answers with `:check`
 - Reveal answers
-- Colours
 - Save with `:w`
 - More commands
     - `H` `M` `L`
     - `f` `F` `t` `T` `;` `,`
     - `/` `?` `n` `N` (`*` `#` should be pretty useless for crosswords)
     - `incsearch`?
-    - `a` to enter insert mode at the next blank square
     - `s` (although it’s only visually different from `i` in our case)
     - `cw` (`ciw`?)
     - `dw` (`diw`?) to delete word, leaving untouched squares that

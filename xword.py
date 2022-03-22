@@ -181,6 +181,8 @@ class Game:
                 self.i()
             elif char == 'a':
                 self.a()
+            elif char == 's':
+                self.s()
         elif self.mode is Mode.INSERT:
             if char == '\x1b':
                 self.escape()
@@ -260,6 +262,10 @@ class Game:
 
     def a(self) -> None:
         self.cursor = self.cursor.move_to_next_square()
+        self.i()
+
+    def s(self) -> None:
+        self.cursor = self.cursor.x()
         self.i()
 
     def escape(self) -> None:

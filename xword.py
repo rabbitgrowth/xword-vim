@@ -170,6 +170,8 @@ class Game:
                 term.block_cursor()
             elif char == 'x':
                 self.cursor = self.cursor.x()
+            elif char == '~':
+                self.cursor = self.cursor.tilde()
             elif char == ' ':
                 self.cursor = self.cursor.toggle_direction()
             elif char == ':':
@@ -460,6 +462,10 @@ class Square:
         else:
             raise ValueError
 
+    def toggle_pencil(self) -> None:
+        if self.guess is not None:
+            self.pencilled_in = not self.pencilled_in
+
     def render(self) -> str:
         guess = self.guess if self.guess is not None else ' '
         if guess is not None and self.pencilled_in:
@@ -643,6 +649,10 @@ class Cursor:
     def x(self) -> Cursor:
         self.square.set(None)
         return self
+
+    def tilde(self) -> Cursor:
+        self.square.toggle_pencil()
+        return self.move_to_next_square()
 
     def type(self, char: str) -> Cursor:
         try:

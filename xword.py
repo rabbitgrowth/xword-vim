@@ -136,9 +136,7 @@ class Game:
                 append(char)
                 char = term.read_char()
             count = int(''.join(chars)) if chars else None # distinguish between G and 1G
-            if char == 'i':
-                self.i()
-            elif char == 'h':
+            if char == 'h':
                 self.cursor = self.cursor.h()
             elif char == 'j':
                 self.cursor = self.cursor.j()
@@ -173,12 +171,14 @@ class Game:
                 term.block_cursor()
             elif char == 'x':
                 self.cursor = self.cursor.x()
-            elif char == '~':
-                self.cursor = self.cursor.tilde()
             elif char == ' ':
                 self.cursor = self.cursor.space()
+            elif char == '~':
+                self.cursor = self.cursor.tilde()
             elif char == ':':
                 self.handle_command(self.read_command())
+            elif char == 'i':
+                self.i()
         elif self.mode is Mode.INSERT:
             if char == '\x1b':
                 self.escape()
@@ -557,9 +557,6 @@ class Cursor:
     def other_direction(self) -> Direction:
         return Direction.DOWN if self.direction is Direction.ACROSS else Direction.ACROSS
 
-    def space(self) -> Cursor:
-        return Cursor(self.square, self.other_direction, self.puzzle)
-
     def move(self, dx: int, dy: int) -> Cursor:
         x, y = self.square
         while True:
@@ -692,6 +689,9 @@ class Cursor:
     def x(self) -> Cursor:
         self.square.unset()
         return self
+
+    def space(self) -> Cursor:
+        return Cursor(self.square, self.other_direction, self.puzzle)
 
     def tilde(self) -> Cursor:
         self.square.toggle_pencil()

@@ -215,9 +215,9 @@ class Game:
             bang = False
         if command.isdigit():
             self.cursor = self.cursor.G(int(command))
-        elif command == 'check':
+        elif command in ('c', 'check'):
             self.check(bang=bang)
-        elif command == 'q':
+        elif command in ('q', 'quit'):
             sys.exit()
         elif command == 'smile':
             self.show_message(':-)')

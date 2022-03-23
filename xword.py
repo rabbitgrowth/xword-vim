@@ -28,6 +28,8 @@ class Status(enum.Enum):
     NORMAL       = enum.auto()
     PENCILLED_IN = enum.auto()
     MARKED_WRONG = enum.auto()
+    MARKED_RIGHT = enum.auto()
+    REVEALED     = enum.auto()
 
 class Shape(enum.Enum):
     DOWN_AND_RIGHT          = enum.auto()
@@ -99,6 +101,7 @@ class Game:
             while True:
                 self.render()
                 self.handle_input()
+                self.congratulate()
         except KeyboardInterrupt:
             pass
         finally:
@@ -224,6 +227,13 @@ class Game:
             else:
                 self.cursor = self.cursor.type(char)
 
+    def congratulate(self) -> None:
+        if self.mode is Mode.NORMAL and all(square.guess is not None for square in self.puzzle.itersquares()):
+            if all(square.guess == square.solution for square in self.puzzle.itersquares()):
+                self.show_message("Congrats! You've finished the puzzle.")
+            else:
+                self.show_message("At least one square's amiss.")
+
     def read_command(self) -> str:
         self.message = None
         term.move_cursor(0, self.puzzle.displayed_height + 1)
@@ -239,46 +249,28 @@ class Game:
     def handle_command(self, command: str) -> None:
         if command.isdigit():
             self.cursor = self.cursor.G(int(command))
-        elif command in ('c', 'check'):
-            self.check()
-        elif command in ('c!', 'check!'):
-            self.check(mark=True)
+        elif command in ('cs', 'check square'):
+            self.cursor.square.check()
+        elif command in ('c', 'cw', 'check', 'check word'):
+            word = self.cursor.square.word[self.cursor.direction]
+            for square in word:
+                square.check()
+        elif command in ('cp', 'check puzzle'):
+            for square in self.puzzle.itersquares():
+                square.check()
+        elif command in ('rs', 'reveal square'):
+            self.cursor.square.reveal()
+        elif command in ('r', 'rw', 'reveal', 'reveal word'):
+            word = self.cursor.square.word[self.cursor.direction]
+            for square in word:
+                square.reveal()
+        elif command in ('rp', 'reveal puzzle'):
+            for square in self.puzzle.itersquares():
+                square.reveal()
         elif command in ('q', 'quit'):
             sys.exit()
         elif command == 'smile':
             self.show_message(':-)')
-
-    def check(self, mark: bool = False) -> None:
-        #                      wrong
-        #              ┌──────┬──────┬──────┐
-        #              │ none │ some │ all  │
-        #       ┌──────┼──────┼──────┴──────┤
-        #       │ none │ done │             │
-        #       ├──────┼──────┤    amiss    │
-        # empty │ some │ fine │             │
-        #       ├──────┼──────┴─────────────┤
-        #       │  all │  nothing to check  │
-        #       └──────┴────────────────────┘
-        is_empty = []
-        is_wrong = []
-        for square in self.puzzle.itersquares():
-            is_empty.append(square.guess is None)
-            is_wrong.append(square.is_wrong())
-            if mark:
-                square.mark()
-        if all(is_empty):
-            self.show_message("There's nothing to check.")
-        elif any(is_wrong):
-            if mark:
-                nwrong = sum(is_wrong)
-                suffix = 's' if nwrong > 1 else ''
-                self.show_message(f"Found {nwrong} wrong square{suffix}.")
-            else:
-                self.show_message("At least one square's amiss.")
-        elif any(is_empty):
-            self.show_message("You're doing fine.")
-        else:
-            self.show_message("Congrats! You've finished the puzzle.")
 
     def i(self) -> None:
         self.mode = Mode.INSERT
@@ -523,9 +515,6 @@ class Square:
     def is_end(self, direction: Direction) -> bool:
         return self is self.word[direction][-1]
 
-    def is_wrong(self) -> bool:
-        return self.guess is not None and self.guess != self.solution
-
     def clue_number(self) -> int | None:
         for direction in Direction:
             if self.is_start(direction):
@@ -547,8 +536,13 @@ class Square:
         if self.guess is not None:
             self.status = Status.NORMAL if self.status is Status.PENCILLED_IN else Status.PENCILLED_IN
 
-    def mark(self) -> None:
-        self.status = Status.MARKED_WRONG if self.is_wrong() else Status.NORMAL
+    def check(self) -> None:
+        if self.guess is not None:
+            self.status = Status.MARKED_WRONG if self.guess != self.solution else Status.MARKED_RIGHT
+
+    def reveal(self) -> None:
+        self.guess  = self.solution
+        self.status = Status.REVEALED
 
     def render(self) -> str:
         guess = self.guess if self.guess is not None else ' '
@@ -556,6 +550,10 @@ class Square:
             guess = term.dim(guess)
         elif self.status is Status.MARKED_WRONG:
             guess = term.red(guess)
+        elif self.status is Status.MARKED_RIGHT:
+            guess = term.green(guess)
+        elif self.status is Status.REVEALED:
+            guess = term.blue(guess)
         return f' {guess} '
 
 class Word:

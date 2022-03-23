@@ -74,3 +74,6 @@ def red(text: str) -> str:
 
 def green(text: str) -> str:
     return f'\x1b[32m{text}\x1b[39m'
+
+def blue(text: str) -> str:
+    return f'\x1b[34m{text}\x1b[39m'

@@ -29,6 +29,7 @@ class Status(enum.Enum):
     PENCILLED_IN = enum.auto()
     MARKED_WRONG = enum.auto()
     MARKED_RIGHT = enum.auto()
+    REVEALED     = enum.auto()
 
 class Shape(enum.Enum):
     DOWN_AND_RIGHT          = enum.auto()
@@ -249,6 +250,15 @@ class Game:
         elif command in ('cp', 'check puzzle'):
             for square in self.puzzle.itersquares():
                 square.check()
+        elif command in ('rs', 'reveal square'):
+            self.cursor.square.reveal()
+        elif command in ('rw', 'reveal word'):
+            word = self.cursor.square.word[self.cursor.direction]
+            for square in word:
+                square.reveal()
+        elif command in ('rp', 'reveal puzzle'):
+            for square in self.puzzle.itersquares():
+                square.reveal()
         elif command in ('q', 'quit'):
             sys.exit()
         elif command == 'smile':
@@ -522,6 +532,10 @@ class Square:
         if self.guess is not None:
             self.status = Status.MARKED_WRONG if self.guess != self.solution else Status.MARKED_RIGHT
 
+    def reveal(self) -> None:
+        self.guess  = self.solution
+        self.status = Status.REVEALED
+
     def render(self) -> str:
         guess = self.guess if self.guess is not None else ' '
         if self.status is Status.PENCILLED_IN:
@@ -530,6 +544,8 @@ class Square:
             guess = term.red(guess)
         elif self.status is Status.MARKED_RIGHT:
             guess = term.green(guess)
+        elif self.status is Status.REVEALED:
+            guess = term.blue(guess)
         return f' {guess} '
 
 class Word:

@@ -101,6 +101,7 @@ class Game:
             while True:
                 self.render()
                 self.handle_input()
+                self.congratulate()
         except KeyboardInterrupt:
             pass
         finally:
@@ -225,6 +226,13 @@ class Game:
                     self.cursor = self.cursor.type(next_char)
             else:
                 self.cursor = self.cursor.type(char)
+
+    def congratulate(self) -> None:
+        if self.mode is Mode.NORMAL and all(square.guess is not None for square in self.puzzle.itersquares()):
+            if all(square.guess == square.solution for square in self.puzzle.itersquares()):
+                self.show_message("Congrats! You've finished the puzzle.")
+            else:
+                self.show_message("At least one square's amiss.")
 
     def read_command(self) -> str:
         self.message = None

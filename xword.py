@@ -228,8 +228,8 @@ class Game:
                 self.cursor = self.cursor.type(char)
 
     def congratulate(self) -> None:
-        if self.mode is Mode.NORMAL and all(square.guess is not None for square in self.puzzle.itersquares()):
-            if all(square.guess == square.solution for square in self.puzzle.itersquares()):
+        if self.mode is Mode.NORMAL and all(square.is_filled() for square in self.puzzle.itersquares()):
+            if all(square.is_right() for square in self.puzzle.itersquares()):
                 self.show_message("Congrats! You've finished the puzzle.")
             else:
                 self.show_message("At least one square's amiss.")
@@ -515,6 +515,12 @@ class Square:
     def is_end(self, direction: Direction) -> bool:
         return self is self.word[direction][-1]
 
+    def is_filled(self) -> bool:
+        return self.guess is not None
+
+    def is_right(self) -> bool:
+        return self.is_filled() and self.guess == self.solution
+
     def clue_number(self) -> int | None:
         for direction in Direction:
             if self.is_start(direction):
@@ -533,19 +539,20 @@ class Square:
         self.status = Status.NORMAL
 
     def toggle_pencil(self) -> None:
-        if self.guess is not None:
+        if self.is_filled():
             self.status = Status.NORMAL if self.status is Status.PENCILLED_IN else Status.PENCILLED_IN
 
     def check(self) -> None:
-        if self.guess is not None:
-            self.status = Status.MARKED_WRONG if self.guess != self.solution else Status.MARKED_RIGHT
+        if self.is_filled():
+            self.status = Status.MARKED_RIGHT if self.is_right() else Status.MARKED_WRONG
 
     def reveal(self) -> None:
         self.guess  = self.solution
         self.status = Status.REVEALED
 
     def render(self) -> str:
-        guess = self.guess if self.guess is not None else ' '
+        guess = self.guess if self.is_filled() else ' '
+        assert guess is not None
         if self.status is Status.PENCILLED_IN:
             guess = term.dim(guess)
         elif self.status is Status.MARKED_WRONG:
@@ -717,7 +724,7 @@ class Cursor:
 
     def double_right_square_bracket(self) -> Cursor:
         def condition(square: Square, direction: Direction) -> bool:
-            return (square.guess is not None
+            return (square.is_filled()
                     and (square.is_start(direction)
                          or ((prev_square := square.prev[direction]) is not None
                              and prev_square.guess is None)))
@@ -725,7 +732,7 @@ class Cursor:
 
     def double_left_square_bracket(self) -> Cursor:
         def condition(square: Square, direction: Direction) -> bool:
-            return (square.guess is not None
+            return (square.is_filled()
                     and (square.is_end(direction)
                          or ((next_square := square.next[direction]) is not None
                              and next_square.guess is None)))
@@ -736,7 +743,7 @@ class Cursor:
             return (square.guess is None
                     and (square.is_start(direction)
                          or ((prev_square := square.prev[direction]) is not None
-                             and prev_square.guess is not None)))
+                             and prev_square.is_filled())))
         return self.go_to_next_square(condition)
 
     def left_curly_bracket(self) -> Cursor:
@@ -744,7 +751,7 @@ class Cursor:
             return (square.guess is None
                     and (square.is_end(direction)
                          or ((next_square := square.next[direction]) is not None
-                             and next_square.guess is not None)))
+                             and next_square.is_filled())))
         return self.go_to_prev_square(condition)
 
     def r(self, char: str) -> Cursor:

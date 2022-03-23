@@ -251,7 +251,7 @@ class Game:
             self.cursor = self.cursor.G(int(command))
         elif command in ('cs', 'check square'):
             self.cursor.square.check()
-        elif command in ('cw', 'check word'):
+        elif command in ('c', 'cw', 'check', 'check word'):
             word = self.cursor.square.word[self.cursor.direction]
             for square in word:
                 square.check()
@@ -260,7 +260,7 @@ class Game:
                 square.check()
         elif command in ('rs', 'reveal square'):
             self.cursor.square.reveal()
-        elif command in ('rw', 'reveal word'):
+        elif command in ('r', 'rw', 'reveal', 'reveal word'):
             word = self.cursor.square.word[self.cursor.direction]
             for square in word:
                 square.reveal()

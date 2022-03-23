@@ -163,6 +163,20 @@ class Game:
                 self.cursor = self.cursor.b()
             elif char == 'e':
                 self.cursor = self.cursor.e()
+            elif char == ']':
+                append(char)
+                next_char = term.read_char()
+                if next_char == ']':
+                    self.cursor = self.cursor.double_right_square_bracket()
+            elif char == '[':
+                append(char)
+                next_char = term.read_char()
+                if next_char == '[':
+                    self.cursor = self.cursor.double_left_square_bracket()
+            elif char == '}':
+                self.cursor = self.cursor.right_curly_bracket()
+            elif char == '{':
+                self.cursor = self.cursor.left_curly_bracket()
             elif char == 'r':
                 term.underline_cursor()
                 term.flush()
@@ -695,6 +709,38 @@ class Cursor:
 
     def ge(self) -> Cursor:
         return self.go_to_prev_square(lambda square, direction: square.is_end(direction))
+
+    def double_right_square_bracket(self) -> Cursor:
+        def condition(square: Square, direction: Direction) -> bool:
+            return (square.guess is not None
+                    and (square.is_start(direction)
+                         or ((prev_square := square.prev[direction]) is not None
+                             and prev_square.guess is None)))
+        return self.go_to_next_square(condition)
+
+    def double_left_square_bracket(self) -> Cursor:
+        def condition(square: Square, direction: Direction) -> bool:
+            return (square.guess is not None
+                    and (square.is_end(direction)
+                         or ((next_square := square.next[direction]) is not None
+                             and next_square.guess is None)))
+        return self.go_to_prev_square(condition)
+
+    def right_curly_bracket(self) -> Cursor:
+        def condition(square: Square, direction: Direction) -> bool:
+            return (square.guess is None
+                    and (square.is_start(direction)
+                         or ((prev_square := square.prev[direction]) is not None
+                             and prev_square.guess is not None)))
+        return self.go_to_next_square(condition)
+
+    def left_curly_bracket(self) -> Cursor:
+        def condition(square: Square, direction: Direction) -> bool:
+            return (square.guess is None
+                    and (square.is_end(direction)
+                         or ((next_square := square.next[direction]) is not None
+                             and next_square.guess is not None)))
+        return self.go_to_prev_square(condition)
 
     def r(self, char: str) -> Cursor:
         try:

@@ -185,6 +185,17 @@ class Game:
                 term.block_cursor()
             elif char == 'x':
                 self.cursor = self.cursor.x()
+            elif char == 'c':
+                append(char)
+                next_char = term.read_char()
+                if next_char == 'w':
+                    self.cursor = self.cursor.cw()
+                self.i()
+            elif char == 'd':
+                append(char)
+                next_char = term.read_char()
+                if next_char == 'w':
+                    self.cursor = self.cursor.dw()
             elif char == ' ':
                 self.cursor = self.cursor.space()
             elif char == '~':
@@ -747,6 +758,18 @@ class Cursor:
 
     def x(self) -> Cursor:
         self.square.unset()
+        return self
+
+    def cw(self) -> Cursor:
+        word = self.square.word[self.direction]
+        for square in word:
+            square.unset()
+        return Cursor(word[0], self.direction, self.puzzle)
+
+    def dw(self) -> Cursor:
+        word = self.square.word[self.direction]
+        for square in word:
+            square.unset()
         return self
 
     def space(self) -> Cursor:

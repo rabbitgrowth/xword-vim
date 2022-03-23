@@ -386,11 +386,12 @@ class Puzzle:
 
     def render_grid(self, cursor: Cursor) -> Iterator[str]:
         boldness = {}
-        x, y = cursor.word[0]
+        word = cursor.square.word[cursor.direction]
+        x, y = word[0]
         if cursor.direction == Direction.ACROSS:
             boldness[(x, y    )] = Shape.DOWN_AND_RIGHT
             boldness[(x, y + 1)] = Shape.UP_AND_RIGHT
-            for x, y in cursor.word[1:]:
+            for x, y in word[1:]:
                 boldness[(x, y    )] = Shape.HORIZONTAL
                 boldness[(x, y + 1)] = Shape.HORIZONTAL
             boldness[(x + 1, y    )] = Shape.DOWN_AND_LEFT
@@ -398,7 +399,7 @@ class Puzzle:
         else:
             boldness[(x,     y)] = Shape.DOWN_AND_RIGHT
             boldness[(x + 1, y)] = Shape.DOWN_AND_LEFT
-            for x, y in cursor.word[1:]:
+            for x, y in word[1:]:
                 boldness[(x,     y)] = Shape.VERTICAL
                 boldness[(x + 1, y)] = Shape.VERTICAL
             boldness[(x,     y + 1)] = Shape.UP_AND_RIGHT
@@ -447,7 +448,7 @@ class Puzzle:
                         clue_number_string = ''
                     # Can't just use str.ljust because we might add term escape sequence for bold text
                     horizontal_edge = horizontal_edge_char * (3 - len(clue_number_string))
-                    if square is cursor.word[0]:
+                    if square is word[0]:
                         clue_number_string = term.bold(clue_number_string)
                     line += clue_number_string
                     line += horizontal_edge
@@ -579,10 +580,6 @@ class Cursor:
         self.square    = square
         self.direction = direction
         self.puzzle    = puzzle
-
-    @property
-    def word(self) -> Word:
-        return self.square.word[self.direction]
 
     @property
     def other_direction(self) -> Direction:

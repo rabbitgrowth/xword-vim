@@ -11,6 +11,8 @@ import termios
 import textwrap
 import typing
 
+import puz
+
 import term
 
 def sign(n: int) -> int:
@@ -82,8 +84,8 @@ BOX_DRAWING_CHARS = {Shape.DOWN_AND_RIGHT:          {Shape.NONE:           '┌'
                                                      Shape.VERTICAL:       '┃'}}
 
 class Game:
-    def __init__(self, solutions: list[list[str | None]], clues: list[str]) -> None:
-        self.puzzle = Puzzle(solutions, clues)
+    def __init__(self, data: puz.Puzzle) -> None:
+        self.puzzle = Puzzle(data)
         self.cursor = Cursor(self.puzzle.first_square(Direction.ACROSS), Direction.ACROSS, self.puzzle)
         self.mode   = Mode.NORMAL
         self.message: str | None = None
@@ -298,40 +300,30 @@ class Game:
         self.message = None
 
 class Puzzle:
-    def __init__(self, solutions: list[list[str | None]], clues: list[str]) -> None:
-        self.grid = [[Square(x, y, solution, None) if solution is not None else None
+    def __init__(self, data: puz.Puzzle) -> None:
+        self.grid = [[Square(x, y, solution, None) if solution != '.' else None
                       for x, solution in enumerate(row)]
-                     for y, row in enumerate(solutions)]
+                     for y, row in enumerate(zip(*[iter(data.solution)]*data.width))]
 
         self.width            = len(self.grid[0])
         self.height           = len(self.grid)
         self.displayed_width  = self.width  * 4 + 1
         self.displayed_height = self.height * 2 + 1
 
-        # Map starts of runs of white squares to those runs of white squares
-        starts: dict[Square, dict[Direction, list[Square]]] = collections.defaultdict(dict)
-        for direction, grid in zip(Direction, (self.grid, self.transpose())):
-            for row in grid:
-                run = []
-                for square in row:
-                    if square is not None:
-                        run.append(square)
-                    elif run:
-                        starts[run[0]][direction] = run
-                        run = []
-                if run:
-                    starts[run[0]][direction] = run
-
-        # Assign clues to words
-        clue_iterator = iter(clues)
+        numbering = data.clue_numbering()
         self.words: dict[Direction, list[Word]] = collections.defaultdict(list)
-        for clue_number, start in enumerate(sorted(starts, key=lambda square: (square.y, square.x)), start=1):
-            for direction in Direction:
-                squares = starts[start].get(direction)
-                if squares is not None:
-                    clue = Clue(clue_number, next(clue_iterator))
-                    word = Word(squares, clue)
-                    self.words[direction].append(word)
+        for direction, entries in zip(Direction, (numbering.across, numbering.down)):
+            for entry in entries:
+                squares = []
+                for offset in range(entry['len']):
+                    if direction is Direction.DOWN:
+                        offset *= self.width
+                    y, x = divmod(entry['cell'] + offset, self.width)
+                    square = self.get_square(x, y)
+                    squares.append(square)
+                clue = Clue(entry['num'], entry['clue'])
+                word = Word(squares, clue)
+                self.words[direction].append(word)
 
         # Doubly-link words and squares and link squares to words
         for direction, words in self.words.items():
@@ -801,21 +793,5 @@ class Cursor:
         x, y = self.square
         return (2 + x * 4, 1 + y * 2)
 
-def parse(file):
-    f.seek(0x2c) # skip checksums, file magic, etc.
-    width, height, nclues = struct.unpack('<BBH', f.read(4))
-    f.seek(4, 1) # skip unknown bitmask and scrambled tag
-    solutions = [[None if char == '.' else char
-                  for char in f.read(width).decode('iso-8859-1')]
-                 for _ in range(height)]
-    f.seek(width * height, 1) # skip guesses
-    strings = f.read().decode('iso-8859-1').rstrip('\0').split('\0')
-    # skip title, author, and copyright information
-    clues = strings[3:3+nclues]
-    # skip notes
-    assert len(clues) == nclues
-    return solutions, clues
-
 if __name__ == '__main__':
-    with open(sys.argv[1], 'rb') as f:
-        Game(*parse(f)).run()
+    Game(puz.read(sys.argv[1])).run()

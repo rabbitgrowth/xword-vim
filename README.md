@@ -35,39 +35,3 @@ To actually type letters into the puzzle, press `i` to enter *insert
 mode* and type in lowercase. If you type in uppercase, the letters will
 be pencilled in. You can use `<Backspace>` to delete mistakes as usual.
 To leave insert mode and go back to normal mode, press `<Esc>` or `jk`.
-
-## Todo
-
-In descending order of priority:
-
-- Reveal answers
-- Save with `:w`
-- More commands
-    - `H` `M` `L`
-    - `f` `F` `t` `T` `;` `,`
-    - `/` `?` `n` `N` (`*` `#` should be pretty useless for crosswords)
-    - `incsearch`?
-    - `s` (although it’s only visually different from `i` in our case)
-    - `cw` (`ciw`?)
-    - `dw` (`diw`?) to delete word, leaving untouched squares that
-      belong to a completely filled word in the other direction?
-    - `de` `db` `dae`? `d` with any motion??
-    - `}` `{` to jump to blank squares and `]]` `[[` to jump to filled
-      squares?
-    - `]<some letter>` `[<some letter>` to jump to squares marked wrong
-    - `u` and `U` or `<C-R>` to undo and redo
-    - `<C-O>` `<C-I>`
-    - `gi`
-- `<Space>` for empty square in insert mode (`r<Space>` should also work
-  in normal mode, although `x` is more efficient)
-- Count with `h` `j` `k` `l` etc.
-- Circled squares
-- Rebuses and how on earth to display them
-- Config (`.xwordvimrc`?)
-    - `set startofline`
-    - `inoremap jj <Esc>`
-- Marks?
-- Edge cases (grid with no white squares?)
-- Highlight cross references between clues?
-- Visual mode?
-- Timer?

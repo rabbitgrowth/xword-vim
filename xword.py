@@ -581,7 +581,6 @@ class Cursor:
         self.direction = direction
         self.puzzle    = puzzle
 
-    @property
     def other_direction(self) -> Direction:
         return Direction.DOWN if self.direction is Direction.ACROSS else Direction.ACROSS
 
@@ -622,10 +621,10 @@ class Cursor:
         while square is not None:
             yield square, self.direction
             square = square.next[self.direction]
-        square = self.puzzle.first_square(self.other_direction)
+        square = self.puzzle.first_square(self.other_direction())
         while square is not None:
-            yield square, self.other_direction
-            square = square.next[self.other_direction]
+            yield square, self.other_direction()
+            square = square.next[self.other_direction()]
         square = self.puzzle.first_square(self.direction)
         while square is not start:
             assert square is not None
@@ -638,10 +637,10 @@ class Cursor:
         while square is not None:
             yield square, self.direction
             square = square.prev[self.direction]
-        square = self.puzzle.last_square(self.other_direction)
+        square = self.puzzle.last_square(self.other_direction())
         while square is not None:
-            yield square, self.other_direction
-            square = square.prev[self.other_direction]
+            yield square, self.other_direction()
+            square = square.prev[self.other_direction()]
         square = self.puzzle.last_square(self.direction)
         while square is not start:
             assert square is not None
@@ -751,7 +750,7 @@ class Cursor:
         return self
 
     def space(self) -> Cursor:
-        return Cursor(self.square, self.other_direction, self.puzzle)
+        return Cursor(self.square, self.other_direction(), self.puzzle)
 
     def tilde(self) -> Cursor:
         self.square.toggle_pencil()

@@ -320,6 +320,7 @@ class Puzzle:
                         offset *= self.width
                     y, x = divmod(entry['cell'] + offset, self.width)
                     square = self.get_square(x, y)
+                    assert square is not None
                     squares.append(square)
                 clue = Clue(entry['num'], entry['clue'])
                 word = Word(squares, clue)

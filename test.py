@@ -1,5 +1,6 @@
 import itertools
 import operator
+import pathlib
 import unittest
 
 import term
@@ -15,31 +16,7 @@ class TestHelpers(unittest.TestCase):
 
 class TestMiniPuzzle(unittest.TestCase):
     def setUp(self):
-        solutions = [[None if char == '.' else char for char in line]
-                     for line in ['.RACED.',
-                                  'BELARUS',
-                                  'LABTECH',
-                                  'ALE.CHE',
-                                  'KIRSTIE',
-                                  'ESTREET',
-                                  '.MAIDS.']]
-        clues = ['Competed in the downhill or super-G',
-                 'Painting style of Winslow Homer and Edward Hopper',
-                 'Canadian province that borders Montana',
-                 'Sofa scratcher',
-                 'Put up, as a building',
-                 'Territories for English nobility',
-                 'Country between Ukraine and Lithuania',
-                 'Country star Shelton',
-                 'Unit of fabric or ice',
-                 'Worker in a bio building',
-                 'The "A" of I.P.A.',
-                 'Michael of "S.N.L."',
-                 'Alley who\'s a spokesperson for Jenny Craig',
-                 '___ Lanka',
-                 '___ Band, backers of Bruce Springsteen',
-                 'Hotel cleaners']
-        self.puzzle = xword.Puzzle(solutions, clues)
+        self.puzzle = xword.Puzzle(pathlib.Path('test.puz'))
 
     def test_width_and_height(self):
         self.assertEqual(self.puzzle.width,  7)

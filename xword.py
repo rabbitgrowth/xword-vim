@@ -1,12 +1,9 @@
 from __future__ import annotations
 from collections.abc import Callable, Iterator
 import collections
-import copy
 import enum
 import pathlib
 import readline
-import string
-import struct
 import sys
 import termios
 import textwrap

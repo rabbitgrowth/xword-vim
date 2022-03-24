@@ -324,9 +324,11 @@ class Puzzle:
                     squares.append(square)
                 clue = Clue(entry['num'], entry['clue'])
                 word = Word(squares, clue)
+                for square in squares:
+                    square.word[direction] = word
                 self.words[direction].append(word)
 
-        # Doubly-link words and squares and link squares to words
+        # Doubly-link words and squares
         for direction, words in self.words.items():
             prev_word   = None
             prev_square = None
@@ -335,7 +337,6 @@ class Puzzle:
                     word.prev = prev_word
                     prev_word.next = word
                 for square in word:
-                    square.word[direction] = word
                     if prev_square is not None:
                         square.prev[direction] = prev_square
                         prev_square.next[direction] = square

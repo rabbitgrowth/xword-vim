@@ -3,6 +3,7 @@ from collections.abc import Callable, Iterator
 import collections
 import copy
 import enum
+import pathlib
 import readline
 import string
 import struct
@@ -84,8 +85,8 @@ BOX_DRAWING_CHARS = {Shape.DOWN_AND_RIGHT:          {Shape.NONE:           '┌'
                                                      Shape.VERTICAL:       '┃'}}
 
 class Game:
-    def __init__(self, data: puz.Puzzle) -> None:
-        self.puzzle = Puzzle(data)
+    def __init__(self, file: pathlib.Path) -> None:
+        self.puzzle = Puzzle(file)
         self.cursor = Cursor(self.puzzle.first_square(Direction.ACROSS), Direction.ACROSS, self.puzzle)
         self.mode   = Mode.NORMAL
         self.message: str | None = None
@@ -300,7 +301,8 @@ class Game:
         self.message = None
 
 class Puzzle:
-    def __init__(self, data: puz.Puzzle) -> None:
+    def __init__(self, file: pathlib.Path) -> None:
+        data = puz.read(file)
         self.grid = [[Square(x, y, solution, None) if solution != '.' else None
                       for x, solution in enumerate(row)]
                      for y, row in enumerate(zip(*[iter(data.solution)]*data.width))]
@@ -796,4 +798,4 @@ class Cursor:
         return (2 + x * 4, 1 + y * 2)
 
 if __name__ == '__main__':
-    Game(puz.read(sys.argv[1])).run()
+    Game(pathlib.Path(sys.argv[1])).run()

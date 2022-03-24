@@ -302,10 +302,28 @@ class Game:
 
 class Puzzle:
     def __init__(self, file: pathlib.Path) -> None:
-        data = puz.read(file)
-        self.grid = [[Square(x, y, solution, None) if solution != '.' else None
-                      for x, solution in enumerate(row)]
-                     for y, row in enumerate(zip(*[iter(data.solution)]*data.width))]
+        data  = puz.read(file)
+        pairs = zip(data.solution, data.fill)
+        self.grid = []
+        for y in range(data.height):
+            row = []
+            for x in range(data.width):
+                solution, guess = next(pairs)
+                if solution == '.':
+                    assert guess == '.'
+                    square = None
+                else:
+                    if guess == '-':
+                        guess = None
+                    square = Square(x, y, solution, guess)
+                row.append(square)
+            self.grid.append(row)
+        try:
+            next(pairs)
+        except StopIteration:
+            pass
+        else:
+            assert False
 
         self.width            = len(self.grid[0])
         self.height           = len(self.grid)

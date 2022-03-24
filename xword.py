@@ -12,7 +12,7 @@ import termios
 import textwrap
 import typing
 
-import puz
+import puz # type: ignore
 
 import term
 

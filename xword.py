@@ -704,14 +704,12 @@ class Cursor:
         return self.move(1, 0)
 
     def gg(self) -> Cursor:
-        square = self.topmost() if self.direction is Direction.ACROSS else self.leftmost()
-        return Cursor(square, self.direction, self.puzzle)
+        return Cursor(self.topmost(), self.direction, self.puzzle)
 
     def G(self, count: int | None) -> Cursor:
         # G: go to bottom
         if count is None:
-            square = self.bottommost() if self.direction is Direction.ACROSS else self.rightmost()
-            return Cursor(square, self.direction, self.puzzle)
+            return Cursor(self.bottommost(), self.direction, self.puzzle)
         # [count]G: go to square with clue number [count]
         for square in self.puzzle.itersquares():
             if square.clue_number() == count:
@@ -719,12 +717,10 @@ class Cursor:
         return self
 
     def zero(self) -> Cursor:
-        square = self.leftmost() if self.direction is Direction.ACROSS else self.topmost()
-        return Cursor(square, self.direction, self.puzzle)
+        return Cursor(self.leftmost(), self.direction, self.puzzle)
 
     def dollar(self) -> Cursor:
-        square = self.rightmost() if self.direction is Direction.ACROSS else self.bottommost()
-        return Cursor(square, self.direction, self.puzzle)
+        return Cursor(self.rightmost(), self.direction, self.puzzle)
 
     def w(self) -> Cursor:
         return self.go_to_next_square(lambda square, direction: square.is_start(direction))

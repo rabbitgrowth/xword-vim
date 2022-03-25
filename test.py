@@ -3,6 +3,8 @@ import operator
 import pathlib
 import unittest
 
+import puz
+
 import term
 import xword
 
@@ -16,7 +18,7 @@ class TestHelpers(unittest.TestCase):
 
 class TestMiniPuzzle(unittest.TestCase):
     def setUp(self):
-        self.puzzle = xword.Puzzle(pathlib.Path('test.puz'))
+        self.puzzle = xword.Puzzle(puz.read('test.puz'))
 
     def test_width_and_height(self):
         self.assertEqual(self.puzzle.width,  7)

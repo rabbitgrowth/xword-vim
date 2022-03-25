@@ -83,7 +83,8 @@ BOX_DRAWING_CHARS = {Shape.DOWN_AND_RIGHT:          {Shape.NONE:           '┌'
 
 class Game:
     def __init__(self, file: pathlib.Path) -> None:
-        self.puzzle = Puzzle(file)
+        self.data   = puz.read(file)
+        self.puzzle = Puzzle(self.data)
         self.cursor = Cursor(self.puzzle.first_square(Direction.ACROSS), Direction.ACROSS, self.puzzle)
         self.mode   = Mode.NORMAL
         self.message: str | None = None
@@ -111,17 +112,23 @@ class Game:
     def render(self) -> None:
         term.clear_screen()
         term.move_cursor(0, 0)
-        for y, line in enumerate(self.puzzle.render_grid(self.cursor)):
+        term.write(term.bold(self.data.title))
+        term.move_cursor(0, 1)
+        term.write(self.data.author)
+        for y, line in enumerate(self.puzzle.render_grid(self.cursor), start=2):
             term.move_cursor(0, y)
             term.write(line)
         for direction, x_offset, title in zip(Direction, (2, 36), ('Across', 'Down')):
-            for y, line in enumerate([term.bold(title), *self.puzzle.render_clues(self.cursor, direction)]):
+            for y, line in enumerate([term.bold(title),
+                                      *self.puzzle.render_clues(self.cursor, direction)],
+                                     start=2):
                 term.move_cursor(self.puzzle.displayed_width + x_offset, y)
                 term.write(line)
         if self.message is not None:
-            term.move_cursor(0, self.puzzle.displayed_height + 1)
+            term.move_cursor(0, self.puzzle.displayed_height + 3)
             term.write(self.message)
-        term.move_cursor(*self.cursor.displayed_coords())
+        x, y = self.cursor.displayed_coords()
+        term.move_cursor(x, y + 2)
         term.flush()
 
     def handle_input(self) -> None:
@@ -129,7 +136,7 @@ class Game:
         def append(char):
             chars.append(char)
             term.save_cursor()
-            term.move_cursor(self.puzzle.displayed_width + 60, self.puzzle.displayed_height + 1)
+            term.move_cursor(self.puzzle.displayed_width + 60, self.puzzle.displayed_height + 3)
             term.write(''.join(chars[-8:]))
             term.restore_cursor()
             term.flush()
@@ -236,7 +243,7 @@ class Game:
 
     def read_command(self) -> str:
         self.message = None
-        term.move_cursor(0, self.puzzle.displayed_height + 1)
+        term.move_cursor(0, self.puzzle.displayed_height + 3)
         term.clear_rest_of_line()
         term.leave_raw_mode()
         command = input(':')
@@ -298,8 +305,7 @@ class Game:
         self.message = None
 
 class Puzzle:
-    def __init__(self, file: pathlib.Path) -> None:
-        data  = puz.read(file)
+    def __init__(self, data: puz.Puzzle) -> None:
         pairs = zip(data.solution, data.fill)
         self.grid = []
         for y in range(data.height):

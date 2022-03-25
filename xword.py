@@ -118,10 +118,8 @@ class Game:
         for y, line in enumerate(self.puzzle.render_grid(self.cursor), start=2):
             term.move_cursor(0, y)
             term.write(line)
-        for direction, x_offset, title in zip(Direction, (2, 36), ('Across', 'Down')):
-            for y, line in enumerate([term.bold(title),
-                                      *self.puzzle.render_clues(self.cursor, direction)],
-                                     start=2):
+        for direction, x_offset in zip(Direction, (2, 36)):
+            for y, line in enumerate(self.puzzle.render_clues(self.cursor, direction), start=2):
                 term.move_cursor(self.puzzle.displayed_width + x_offset, y)
                 term.write(line)
         if self.message is not None:
@@ -488,7 +486,8 @@ class Puzzle:
                         line += '░░░' if square is None else square.render()
                 yield line
 
-    def render_clues(self, cursor: Cursor, direction: Direction) -> list[str]:
+    def render_clues(self, cursor: Cursor, direction: Direction) -> Iterator[str]:
+        yield term.bold('Across' if direction is Direction.ACROSS else 'Down')
         lines = []
         start = 0 # start index, i.e., number of lines to skip
         found = False
@@ -509,7 +508,7 @@ class Puzzle:
                 lines.append(line)
         height = self.displayed_height - 1
         start = min(start, max(len(lines) - height, 0))
-        return lines[start:start+height]
+        yield from lines[start:start+height]
 
 class Square:
     def __init__(self, x: int, y: int, solution: str, guess: str | None) -> None:

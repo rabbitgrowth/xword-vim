@@ -16,9 +16,7 @@ if you already use Vim):
 - `h` `j` `k` `l`: move left (`h`), down (`j`), up (`k`), or right
   (`l`), skipping over black squares.
 - `gg` `G` `0` `$`: jump to the topmost (`gg`), bottommost (`G`),
-  leftmost (`0`), or rightmost (`$`) square – if the cursor is in the
-  across direction. If it’s in the down direction, the behaviours of
-  `gg` `G` and `0` `$` are swapped.
+  leftmost (`0`), or rightmost (`$`) square.
 - `[number]G`: jump to the square with the specified clue number.
 - `w` `b` `e` `ge`: jump to the next word (`w`), previous word (`b`),
   next end of word (`e`), or previous end of word (`ge`) (“word” meaning
